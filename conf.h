@@ -98,6 +98,7 @@ typedef struct structProgramInfo_
 
 
 #include "drawing.h"
+#include "game.h"
 #include "main.h"
 
 

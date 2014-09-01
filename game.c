@@ -32,5 +32,25 @@ void gameInit(structProgramInfo* p_structCommon)
   */
 void playGame(structProgramInfo* p_structCommon)
 {
+	unsigned char l_cKey;
+	int l_iCursorX;
+	int l_iCursorY;
+
+	l_cKey = 0;
+	l_iCursorX = 1;
+	l_iCursorY = 1;
+
+	/* Init the game, screen stuff etc... */
 	gameInit(p_structCommon);
+
+	/* Display cursor */
+	displayCursor(l_iCursorX, l_iCursorY);
+
+	do
+	{
+		l_cKey = getch();
+
+
+
+	}while(l_cKey != 27);		/* until Esc pressed */
 }

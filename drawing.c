@@ -85,7 +85,7 @@ void disableBar(void)
   * @param p_iColor : color, Cf the enum
   * @return 0
   */
-int drawElement(int p_iX, int p_iY, char p_cChar, int p_iColor)
+int drawElement(int p_iX, int p_iY, unsigned char p_cChar, int p_iColor)
 {
         int l_iRow,l_iCol;                              /* to store the number of rows and */
         getmaxyx(stdscr,l_iRow,l_iCol);                 /* get the number of rows and columns */
@@ -157,3 +157,14 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
 	}
 }
 
+
+
+/** @brief Function to display the cursor, at the cursor position
+  * @param p_iCursorX : Cursor column
+  * @param p_iCursorY : Cursor row
+  */
+void displayCursor(int p_iCursorX, int p_iCursorY)
+{
+	drawElement(p_iCursorX, p_iCursorY, 'e' , CURSOR_COLOR);
+	refresh();
+}

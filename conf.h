@@ -48,7 +48,14 @@
 /* Parameters of the program */
 #define CONSOLE_SPACE_ON_BOARD_BOTTOM	3	/* Means there is 4 lines at the bottom of the game board reserved to display */
 						/* informations and, later, the communication box */
+#define DEFAULT_PLAYERS			2	/* Default number of players per play */
+#define DEFAULT_GRID_LENGHT		19
+#define DEFAULT_GRID_HEIGHT		19
 
+
+/* Cursor parameters */
+#define CURSOR_COLOR			enumBlanc
+#define CURSOR_CHARACTER		219	/* The full matrix */
 
 
 /* Colors of lines (Bottom and Top) */

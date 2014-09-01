@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 
 
         /*  Don't ask Enter key in order to complete a getch() */
-        nodelay(stdscr, 0);
+        nodelay(stdscr, 1);
 
 	getch();
 	playGame(l_structCommon);

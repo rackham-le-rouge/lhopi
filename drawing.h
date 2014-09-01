@@ -26,9 +26,9 @@ void disableBar(void);
 void enableBar(void);
 void topText(const char* p_sString);
 void botText(const char* p_sString);
-int drawElement(int, int, char, int);
+int drawElement(int, int, unsigned char, int);
 void initColor(void);
 void drawTheBoardGame(structProgramInfo* p_structCommon);
-
+void displayCursor(int p_iCursorX, int p_iCursorY);
 
 #endif

@@ -24,6 +24,5 @@
 void killTheApp(void);
 void extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_structCommon);
 
-
 #endif
 

@@ -45,6 +45,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+/* Parameters of the program */
+#define CONSOLE_SPACE_ON_BOARD_BOTTOM	3	/* Means there is 4 lines at the bottom of the game board reserved to display */
+						/* informations and, later, the communication box */
 
 
 
@@ -57,7 +60,13 @@
 
 /* Colors of element in a single matrix */
 #define COLOR_ELEMENT_FG        COLOR_BLACK
-#define GRAPHIC_MODE            0               /* 1 background is colored 0 background id black and letter is colored */
+/*#define GRAPHIC_MODE            1 */              /* 1 background is colored 0 background id black and letter is colored */
+
+
+/* Colors of part of the screen */
+#define CONSOLE_LINE_COLOR	enumMagenta
+
+
 
 typedef enum
 {
@@ -96,9 +105,8 @@ typedef struct structProgramInfo_
 
 
 
-
-#include "drawing.h"
 #include "game.h"
+#include "drawing.h"
 #include "main.h"
 
 

@@ -28,5 +28,7 @@ void topText(const char* p_sString);
 void botText(const char* p_sString);
 int drawElement(int, int, char, int);
 void initColor(void);
+void drawTheBoardGame(structProgramInfo* p_structCommon);
+
 
 #endif

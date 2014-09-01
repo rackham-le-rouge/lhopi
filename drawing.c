@@ -137,3 +137,23 @@ void initColor(void)
 
 
 
+/** @brief This function have to draw the board game taking care of the size of the screen
+  * @param p_structCommon : Struct with all the program information
+  */
+void drawTheBoardGame(structProgramInfo* p_structCommon)
+{
+	int l_iIterateur;
+
+	l_iIterateur = 0;
+
+	/* Clean bars */
+	initBar();
+
+
+	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
+	{
+		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM + 1), '_' , CONSOLE_LINE_COLOR);
+						/* We put -1 in order to take care of the scpace taken by this line */
+	}
+}
+

@@ -12,4 +12,7 @@
 #define	GAME_H
 
 
+void gameInit(structProgramInfo* p_structCommon);
+void playGame(structProgramInfo* p_structCommon);
+
 #endif

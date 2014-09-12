@@ -55,8 +55,8 @@ void extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_st
                         if(strlen(argv[l_iTmp]) > 1)
                         {
                                 /* Change size of the grid */
-                                p_structCommon->iSizeX = (!strcmp(argv[l_iTmp], "-s")) ? atoi(argv[l_iTmp + 1]) : p_structCommon->iSizeX;
-                                p_structCommon->iSizeY = (!strcmp(argv[l_iTmp], "-s")) ? atoi(argv[l_iTmp + 2]) : p_structCommon->iSizeY;
+                                p_structCommon->iSizeX = (!strcmp(argv[l_iTmp], "-s")) ? (unsigned int)atoi(argv[l_iTmp + 1]) : p_structCommon->iSizeX;
+                                p_structCommon->iSizeY = (!strcmp(argv[l_iTmp], "-s")) ? (unsigned int)atoi(argv[l_iTmp + 2]) : p_structCommon->iSizeY;
                                 /*if(!strcmp(argv[l_iTmp], "-s")) {LOG_WRITE_STRING_LONG("C.LINE: ", (long)p_structCommon->iSizeX)}*/
 
                                 /* Display help */
@@ -136,11 +136,9 @@ int main(int argc, char** argv)
 
 
         /*  Don't ask Enter key in order to complete a getch() */
-        nodelay(stdscr, 1);
+        /*nodelay(stdscr, 1);*/
 
-	getch();
 	playGame(l_structCommon);
-	getch();
 
 	/* Release memory */
 	free(l_cBuffer);

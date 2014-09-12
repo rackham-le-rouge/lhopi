@@ -46,7 +46,7 @@
 #define CONFIG_H
 
 /* Parameters of the program */
-#define CONSOLE_SPACE_ON_BOARD_BOTTOM	3	/* Means there is 4 lines at the bottom of the game board reserved to display */
+#define CONSOLE_SPACE_ON_BOARD_BOTTOM	4	/* Means there is 4 lines at the bottom of the game board reserved to display */
 						/* informations and, later, the communication box */
 #define DEFAULT_PLAYERS			2	/* Default number of players per play */
 #define DEFAULT_GRID_LENGHT		19
@@ -54,7 +54,7 @@
 
 
 /* Cursor parameters */
-#define CURSOR_COLOR			enumBlanc
+#define CURSOR_COLOR			COLOR_WHITE
 #define CURSOR_CHARACTER		219	/* The full matrix */
 
 
@@ -67,11 +67,11 @@
 
 /* Colors of element in a single matrix */
 #define COLOR_ELEMENT_FG        COLOR_BLACK
-/*#define GRAPHIC_MODE            1 */              /* 1 background is colored 0 background id black and letter is colored */
+#define GRAPHIC_MODE            1              /* 1 background is colored 0 background id black and letter is colored */
 
 
 /* Colors of part of the screen */
-#define CONSOLE_LINE_COLOR	enumMagenta
+#define CONSOLE_LINE_COLOR	COLOR_MAGENTA
 
 
 
@@ -85,7 +85,9 @@ typedef enum
         enumBleu =      8,
         enumMagenta =   9,
         enumCyan =      10,
-        enumBlanc =     11
+        enumBlanc =     11,
+	enumConsole =	12,
+	enumLine = 	13
 }g_enumJeuxDeCouleursDispo;
 
 

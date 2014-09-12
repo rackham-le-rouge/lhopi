@@ -51,7 +51,7 @@
 #define DEFAULT_PLAYERS			2	/* Default number of players per play */
 #define DEFAULT_GRID_LENGHT		19
 #define DEFAULT_GRID_HEIGHT		19
-
+#define COLOR_MATRIX			0	/* The matrix 'layer'dedicated to store color */
 
 /* Cursor parameters */
 #define CURSOR_COLOR			COLOR_WHITE
@@ -98,16 +98,19 @@ typedef enum
   * Member 'iCol' contains number of colonne in the screen
   * @var structProgramInfo_::iRow
   * Member 'iRow' contains number of row in the screen
+  * @var structProgramInfo_::cGrid
+  * Member 'cGrid' contains the grid. For each position in the matrix, grid store all informations (color etc...)
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
 typedef struct structProgramInfo_
 {
-        int  iCol;
-        int  iRow;
-	int  iSizeX;
-	int  iSizeY;
-	unsigned char padding[8];
+        unsigned int  iCol;
+        unsigned int  iRow;
+	unsigned int  iSizeX;
+	unsigned int  iSizeY;
+	char*** cGrid;
+	unsigned char padding[7];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

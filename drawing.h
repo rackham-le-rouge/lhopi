@@ -29,6 +29,6 @@ void botText(const char* p_sString);
 int drawElement(int, int, unsigned char, int);
 void initColor(void);
 void drawTheBoardGame(structProgramInfo* p_structCommon);
-void displayCursor(int p_iCursorX, int p_iCursorY);
+void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, char*** p_cGrid);
 
 #endif

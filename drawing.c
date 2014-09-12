@@ -146,7 +146,7 @@ void initColor(void)
   */
 void drawTheBoardGame(structProgramInfo* p_structCommon)
 {
-	int l_iIterateur;
+	unsigned int l_iIterateur;
 
 	l_iIterateur = 0;
 
@@ -166,9 +166,24 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
 /** @brief Function to display the cursor, at the cursor position
   * @param p_iCursorX : Cursor column
   * @param p_iCursorY : Cursor row
+  * @param p_cGrid : Three dimentional tabular storing all values of the game board
   */
-void displayCursor(int p_iCursorX, int p_iCursorY)
+void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, char*** p_cGrid)
 {
+	/* Init of static values, in order to erase former cursor position */
+	static unsigned int l_iPreviousCursorXPosition = 0;
+	static unsigned int l_iPreviousCursorYPosition = 1;
+
+	/* draw the cursor */
 	drawElement(p_iCursorX, p_iCursorY, ' ' , enumConsole);
+
+	/* re-draw the grid on the former position of the cursor */
+	drawElement(l_iPreviousCursorXPosition, l_iPreviousCursorYPosition,
+		' ', p_cGrid[COLOR_MATRIX][l_iPreviousCursorXPosition][l_iPreviousCursorYPosition]);
+
+	/* refresh of the 'previous' values */
+	l_iPreviousCursorXPosition = p_iCursorX;
+	l_iPreviousCursorYPosition = p_iCursorY;
+
 	refresh();
 }

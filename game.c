@@ -27,7 +27,6 @@ void gameInit(structProgramInfo* p_structCommon)
 	l_iIterator = 0;
 	l_iIterator2 = 0;
 
-
 	/* Preparation of the graphic part of the game */
 	drawTheBoardGame(p_structCommon);
 
@@ -59,10 +58,14 @@ void playGame(structProgramInfo* p_structCommon)
 	unsigned char l_cKey;
 	unsigned int l_iCursorX;
 	unsigned int l_iCursorY;
+	unsigned int l_iOffsetX;
+	unsigned int l_iOffsetY;
 
 	l_cKey = 0;
-	l_iCursorX = 0;
+	l_iCursorX = 1;
 	l_iCursorY = 1;
+	l_iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
+	l_iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
 	/* Init the game, screen stuff etc... */
 	gameInit(p_structCommon);
@@ -70,7 +73,8 @@ void playGame(structProgramInfo* p_structCommon)
 	do
 	{
 		/* Display wursor each time */
-		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->cGrid);
+		displayCursor(l_iCursorX, l_iCursorY, l_iOffsetX, l_iOffsetY, p_structCommon->cGrid);
+		refresh();
 
 		l_cKey = getch();
 
@@ -79,23 +83,27 @@ void playGame(structProgramInfo* p_structCommon)
 
 			case 'D':
 			{
+				/* LEFT */
 				l_iCursorX = (l_iCursorX < 1) ? 0 : l_iCursorX - 1;
 				break;
 			}
 			case 'C':
 			{
-				l_iCursorX = (l_iCursorX > p_structCommon->iCol - 2) ? p_structCommon->iCol - 1 : l_iCursorX + 1;
+				/* RIGHT */
+				l_iCursorX = (l_iCursorX > p_structCommon->iSizeX - 2) ? p_structCommon->iSizeX - 1 : l_iCursorX + 1;
 				break;
 			}
 			case 'A':
 			{
-				l_iCursorY = (l_iCursorY < 2) ? 1 : l_iCursorY - 1;
+				/* UP */
+				l_iCursorY = (l_iCursorY < 1) ? 0 : l_iCursorY - 1;
 				break;
 			}
 			case 'B':
 			{
-				l_iCursorY = (l_iCursorY > p_structCommon->iRow - CONSOLE_SPACE_ON_BOARD_BOTTOM - 3) ?
-					p_structCommon->iRow - CONSOLE_SPACE_ON_BOARD_BOTTOM - 2 : l_iCursorY + 1;
+				/* DOWN */
+				l_iCursorY = (l_iCursorY > p_structCommon->iSizeY - 2) ?
+					p_structCommon->iSizeY - 1 : l_iCursorY + 1;
 				break;
 			}
 
@@ -106,5 +114,6 @@ void playGame(structProgramInfo* p_structCommon)
 			}
 		}
 	}while((l_cKey != 'q') && (l_cKey != 'Q'));		/* until q/Q pressed */
+
 
 }

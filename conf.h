@@ -100,6 +100,10 @@ typedef enum
   * Member 'iRow' contains number of row in the screen
   * @var structProgramInfo_::cGrid
   * Member 'cGrid' contains the grid. For each position in the matrix, grid store all informations (color etc...)
+  * @var structProgramInfo_::iSizeX
+  * Member 'iSizeX' contains height of the board game
+  * @var structProgramInfo_::iSizeY
+  * Member 'iSizeY' contains height of the board game
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -112,7 +116,6 @@ typedef struct structProgramInfo_
 	char*** cGrid;
 	unsigned char padding[7];
 }__attribute__((aligned(4),packed)) structProgramInfo;
-
 
 
 

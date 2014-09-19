@@ -174,16 +174,20 @@ void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, char*** p_c
 	static unsigned int l_iPreviousCursorXPosition = 0;
 	static unsigned int l_iPreviousCursorYPosition = 1;
 
-	/* draw the cursor */
-	drawElement(p_iCursorX, p_iCursorY, ' ' , enumConsole);
+	/* Avoid redraw because it will erase the cursor and not redraw it */
+	if(!(l_iPreviousCursorXPosition == p_iCursorX && l_iPreviousCursorYPosition == p_iCursorY))
+	{
+		/* draw the cursor */
+		drawElement(p_iCursorX, p_iCursorY, ' ' , enumConsole);
 
-	/* re-draw the grid on the former position of the cursor */
-	drawElement(l_iPreviousCursorXPosition, l_iPreviousCursorYPosition,
-		' ', p_cGrid[COLOR_MATRIX][l_iPreviousCursorXPosition][l_iPreviousCursorYPosition]);
+		/* re-draw the grid on the former position of the cursor */
+		drawElement(l_iPreviousCursorXPosition, l_iPreviousCursorYPosition,
+			' ', p_cGrid[COLOR_MATRIX][l_iPreviousCursorXPosition][l_iPreviousCursorYPosition]);
 
-	/* refresh of the 'previous' values */
-	l_iPreviousCursorXPosition = p_iCursorX;
-	l_iPreviousCursorYPosition = p_iCursorY;
+		/* refresh of the 'previous' values */
+		l_iPreviousCursorXPosition = p_iCursorX;
+		l_iPreviousCursorYPosition = p_iCursorY;
 
-	refresh();
+		refresh();
+	}
 }

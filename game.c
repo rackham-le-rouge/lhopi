@@ -23,9 +23,13 @@ void gameInit(structProgramInfo* p_structCommon)
 	/* variables init */
 	unsigned int l_iIterator;
 	unsigned int l_iIterator2;
+	unsigned int l_iIteratorLayer;
+	unsigned char l_iTmp;
 
 	l_iIterator = 0;
 	l_iIterator2 = 0;
+	l_iIteratorLayer = 0;
+	l_iTmp = 0;
 
 	/* Preparation of the graphic part of the game */
 	drawTheBoardGame(p_structCommon);
@@ -34,17 +38,32 @@ void gameInit(structProgramInfo* p_structCommon)
 
 	/* --> The first number is to select the matrix. Matrix 0 (selected with p_structCommon->cGrid[COLOR_MATRIX][whateverY][whateverX]) stores
 	   color for the given position X, Y
-	   --> There is not second number yet
+	   --> The second layer is the text layer, in order to put special character for each user
 	*/
-	p_structCommon->cGrid = (char***)malloc(1 * sizeof(char**));
+	p_structCommon->cGrid = (char***)malloc(2 * sizeof(char**));
 
-	p_structCommon->cGrid[COLOR_MATRIX] = (char**)malloc(p_structCommon->iSizeY * sizeof(char*));
-	for(l_iIterator = 0 ; l_iIterator < p_structCommon->iSizeY ; l_iIterator++)
+	for(l_iIteratorLayer = 0; l_iIteratorLayer < 2 ; l_iIteratorLayer++)
 	{
-		p_structCommon->cGrid[COLOR_MATRIX][l_iIterator] = (char*)malloc(p_structCommon->iSizeX * sizeof(char));
-		for(l_iIterator2 = 0 ; l_iIterator2 < p_structCommon->iSizeX ; l_iIterator2++)
+		p_structCommon->cGrid[l_iIteratorLayer] = (char**)malloc(p_structCommon->iSizeY * sizeof(char*));
+		for(l_iIterator = 0 ; l_iIterator < p_structCommon->iSizeY ; l_iIterator++)
 		{
-			p_structCommon->cGrid[COLOR_MATRIX][l_iIterator][l_iIterator2] = enumNoir;
+			p_structCommon->cGrid[l_iIteratorLayer][l_iIterator] = (char*)malloc(p_structCommon->iSizeX * sizeof(char));
+			for(l_iIterator2 = 0 ; l_iIterator2 < p_structCommon->iSizeX ; l_iIterator2++)
+			{
+				switch(l_iIteratorLayer)
+				{
+					case COLOR_MATRIX:
+					l_iTmp = enumNoir;
+					break;
+					case TEXT_MATRIX:
+					l_iTmp = ' ';
+					break;
+					default:
+					l_iTmp = 0;
+					break;
+				}
+				p_structCommon->cGrid[l_iIteratorLayer][l_iIterator][l_iIterator2] = l_iTmp;
+			}
 		}
 	}
 }
@@ -66,6 +85,9 @@ void playGame(structProgramInfo* p_structCommon)
 	l_iCursorY = 1;
 	l_iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	l_iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
+
+
+	p_structCommon->iCurrentUserColor = 1; /* FIXME */
 
 	/* Init the game, screen stuff etc... */
 	gameInit(p_structCommon);
@@ -105,6 +127,24 @@ void playGame(structProgramInfo* p_structCommon)
 				l_iCursorY = (l_iCursorY > p_structCommon->iSizeY - 2) ?
 					p_structCommon->iSizeY - 1 : l_iCursorY + 1;
 				break;
+			}
+			case ' ':
+			{
+				/* When the user drop a rock */
+
+				/* Put the color information in the matrix */
+				p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] =
+					p_structCommon->iCurrentUserColor;
+
+				/* Put the text information in the matrix */
+				p_structCommon->cGrid[TEXT_MATRIX][l_iCursorX][l_iCursorY] =
+					' ';
+
+				/* Draw the block of the current user (the other blocks are draw by
+				   another function) */
+				drawElement(l_iCursorX + l_iOffsetX, l_iCursorY + l_iOffsetY,
+					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorX][l_iCursorY],
+					p_structCommon->iCurrentUserColor);
 			}
 
 			default:

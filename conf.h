@@ -52,6 +52,7 @@
 #define DEFAULT_GRID_LENGHT		19
 #define DEFAULT_GRID_HEIGHT		19
 #define COLOR_MATRIX			0	/* The matrix 'layer'dedicated to store color */
+#define TEXT_MATRIX			1	/* The matrix 'layer' with the character to display */
 
 /* Cursor parameters */
 #define CURSOR_COLOR			COLOR_WHITE
@@ -104,6 +105,10 @@ typedef enum
   * Member 'iSizeX' contains height of the board game
   * @var structProgramInfo_::iSizeY
   * Member 'iSizeY' contains height of the board game
+  * @var structProgramInfo_::iCurrentUserNumber
+  * Member 'iCurrentUserNumber' contains the number of the local user of the game
+  * @var structProgramInfo_::iCurrentUserColor
+  * Member 'iCurrentUserNumber' contains the rock color of the current user
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -113,6 +118,8 @@ typedef struct structProgramInfo_
         unsigned int  iRow;
 	unsigned int  iSizeX;
 	unsigned int  iSizeY;
+	unsigned int  iCurrentUserNumber;
+	unsigned int  iCurrentUserColor;
 	char*** cGrid;
 	unsigned char padding[7];
 }__attribute__((aligned(4),packed)) structProgramInfo;

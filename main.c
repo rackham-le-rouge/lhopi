@@ -31,6 +31,9 @@ char ver[] = "1.0";
 /** @brief  Last function executed by the program, used to release the screen */
 void killTheApp(void)
 {
+	/* Show the cursor when the program going down */
+        curs_set(1);
+
         /*  Stop the program and leave the graphic mode ! Very important ! */
         endwin();
 }

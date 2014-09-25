@@ -74,6 +74,11 @@
 /* Colors of part of the screen */
 #define CONSOLE_LINE_COLOR	COLOR_MAGENTA
 
+/* Directions */
+#define DIRECTION_UP		0
+#define DIRECTION_DOWN		1
+#define DIRECTION_LEFT		2
+#define DIRECTION_RIGHT		3
 
 
 typedef enum

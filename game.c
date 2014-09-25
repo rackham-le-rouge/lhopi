@@ -79,8 +79,11 @@ void playGame(structProgramInfo* p_structCommon)
 	unsigned int l_iCursorY;
 	unsigned int l_iOffsetX;
 	unsigned int l_iOffsetY;
+	unsigned int l_iMovement;	/* store the wanted move, if impossible this variable
+					  allow the program to go back */
 
 	l_cKey = 0;
+	l_iMovement = 0;
 	l_iCursorX = 1;
 	l_iCursorY = 1;
 	l_iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
@@ -107,18 +110,21 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* LEFT */
 				l_iCursorX = (l_iCursorX < 1) ? 0 : l_iCursorX - 1;
+				l_iMovement = DIRECTION_LEFT;
 				break;
 			}
 			case 'C':
 			{
 				/* RIGHT */
 				l_iCursorX = (l_iCursorX > p_structCommon->iSizeX - 2) ? p_structCommon->iSizeX - 1 : l_iCursorX + 1;
+				l_iMovement = DIRECTION_RIGHT;
 				break;
 			}
 			case 'A':
 			{
 				/* UP */
 				l_iCursorY = (l_iCursorY < 1) ? 0 : l_iCursorY - 1;
+				l_iMovement = DIRECTION_UP;
 				break;
 			}
 			case 'B':
@@ -126,6 +132,7 @@ void playGame(structProgramInfo* p_structCommon)
 				/* DOWN */
 				l_iCursorY = (l_iCursorY > p_structCommon->iSizeY - 2) ?
 					p_structCommon->iSizeY - 1 : l_iCursorY + 1;
+				l_iMovement = DIRECTION_DOWN;
 				break;
 			}
 			case ' ':
@@ -153,6 +160,41 @@ void playGame(structProgramInfo* p_structCommon)
 				break;
 			}
 		}
+
+		/* Check code, in order to forbid access to already reserved boxes */
+		if((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] != enumNoir)
+		{
+			/* So there is something here and it is not me */
+			switch(l_iMovement)
+			{
+				case DIRECTION_UP:
+				l_iCursorY++;
+				break;
+				case DIRECTION_DOWN:
+				l_iCursorY--;
+				break;
+				case DIRECTION_LEFT:
+				l_iCursorX++;
+				break;
+				case DIRECTION_RIGHT:
+				l_iCursorX--;
+				break;
+				default:
+				/* Who, error ! */
+				perror("Unknown code");
+				break;
+			}
+
+			/* If with bad luck you go over the grid */
+			while((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] != enumNoir)
+			{
+				/* Find random coordinate with the simplest way */
+				l_iCursorX = rand() % p_structCommon->iSizeX;
+				l_iCursorY = rand() % p_structCommon->iSizeY;
+			}
+		}
+
+
 	}while((l_cKey != 'q') && (l_cKey != 'Q'));		/* until q/Q pressed */
 
 

@@ -87,6 +87,8 @@ int main(int argc, char** argv)
 	char* l_cBuffer2;
 	structProgramInfo* l_structCommon;
 
+	/* Start the random machine */
+	srand(time(NULL));
 
 	/* Declare memory */
 	l_structCommon = (structProgramInfo*)malloc(sizeof(structProgramInfo));

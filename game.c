@@ -161,6 +161,7 @@ void playGame(structProgramInfo* p_structCommon)
 			}
 		}
 
+
 		/* Check code, in order to forbid access to already reserved boxes */
 		if((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] != enumNoir)
 		{
@@ -183,6 +184,14 @@ void playGame(structProgramInfo* p_structCommon)
 				/* Who, error ! */
 				perror("Unknown code");
 				break;
+			}
+
+			/* If we go out of the screen by the upper or wester side put it in 0:0 and
+			let the next block check if this block is empty or not */
+			if(l_iCursorY >= p_structCommon->iSizeY || l_iCursorX >= p_structCommon->iSizeX)
+			{
+				l_iCursorX = 0;
+				l_iCursorY = 0;
 			}
 
 			/* If with bad luck you go over the grid */

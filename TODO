@@ -3,3 +3,6 @@ TODO
 g=give up / x=done / ' '=TODO
 
 
+[ ]	Put the graphic algo up
+[ ]	Network functions, receive and ask for info
+[ ]	Negociation mechanism in order to use network do discuss with the server and takes decision

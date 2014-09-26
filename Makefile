@@ -14,7 +14,8 @@
 # -Wpadded              : need to fix it. There is a problem with the structure, memory is not optimized
 
 CC=gcc
-CFLAGS=         -W -Waggregate-return -Wall -Warray-bounds -Wbad-function-cast -Wcast-align -Wcast-qual         \
+DEBUG=-g
+CFLAGS=		-W -Waggregate-return -Wall -Warray-bounds -Wbad-function-cast -Wcast-align -Wcast-qual         \
                  -Wchar-subscripts -Wcomment -Wdeclaration-after-statement -Werror -Wextra -Wfloat-equal        \
                  -Wformat -Wformat-nonliteral -Wformat-security -Wformat-y2k -Wignored-qualifiers -Wimplicit    \
                  -Wimplicit-function-declaration -Wimplicit-int -Winit-self -Winline -Winvalid-pch -Wlogical-op \
@@ -26,17 +27,12 @@ CFLAGS=         -W -Waggregate-return -Wall -Warray-bounds -Wbad-function-cast -
                  -Wswitch -Wswitch-default -Wswitch-enum -Wsync-nand -Wtrigraphs -Wundef -Wuninitialized        \
                  -Wunknown-pragmas -Wunsafe-loop-optimizations -Wunused -Wunused-function -Wunused-label        \
                  -Wunused-parameter -Wunused-value -Wunused-variable -Wvla -Wvolatile-register-var              \
-                 -Wwrite-strings -fno-common -fstack-protector-all -pedantic -std=c99 -Wstrict-aliasing=3
+                 -Wwrite-strings -fno-common -fstack-protector-all -pedantic -std=c99 -Wstrict-aliasing=3 $(DEBUG)
 
-LDFLAGS=-lncurses -ansi -O2
+LDFLAGS=-lncurses -ansi -O2 $(DEBUG)
 EXEC=lhopi
 
 all: $(EXEC)
-
-
-
-
-
 
 lhopi: drawing.o game.o main.o
 	@$(CC) -o $@ $^ $(LDFLAGS)

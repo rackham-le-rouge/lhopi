@@ -85,7 +85,8 @@ void extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_st
   */
 int main(int argc, char** argv)
 {
-	int l_iTmp;
+	int l_iTmp, l_iIteratorLayer;
+	unsigned int l_iIterator;
 	char* l_cBuffer;
 	char* l_cBuffer2;
 	structProgramInfo* l_structCommon;
@@ -146,6 +147,16 @@ int main(int argc, char** argv)
 	playGame(l_structCommon);
 
 	/* Release memory */
+       for(l_iIteratorLayer = 0; l_iIteratorLayer < 2 ; l_iIteratorLayer++)
+        {
+                for(l_iIterator = 0 ; l_iIterator < l_structCommon->iSizeY ; l_iIterator++)
+                {
+                        free(l_structCommon->cGrid[l_iIteratorLayer][l_iIterator]);
+		}
+                free(l_structCommon->cGrid[l_iIteratorLayer]);
+	}
+
+	free(l_structCommon->cGrid);
 	free(l_cBuffer);
 	free(l_cBuffer2);
 	free(l_structCommon);

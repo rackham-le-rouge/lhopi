@@ -46,8 +46,9 @@ void killTheApp(void)
   * @param *p_structCommon : this is the common structure of the program, to carry all important datas
   * @param argc : number of aguments received by the main
   * @param argv : 2D array to store all parameters gived to the main
+  * @return If there i a non NULL value, that means you have to end the program now
   */
-void extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_structCommon)
+int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_structCommon)
 {
 	int l_iTmp;
 
@@ -67,11 +68,14 @@ void extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_st
                                 {
                                         endwin();
                                         printf("Lhopi - Command line use : lhopi [-h{help}] [-s Width Height{new dimensions}]\n");
+					/* Quit function now, then kill the app in order to display help message */
+					return 1;
                                 }
                         }
                         /* Else the parameter is ignored, use strcmp on it cause a segfault */
                 }
 	}
+	return 0;
 }
 
 
@@ -104,7 +108,11 @@ int main(int argc, char** argv)
 	l_structCommon->iSizeY = 19;
 	l_iTmp = 0;
 
-	extractConfigFromCommandLine(argc, argv, l_structCommon);
+	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)
+	{
+		/* Kill app before ncurse init, because user want to display the help message */
+		exit(EXIT_SUCCESS);
+	}
 
         /*  Start the graphic mode */
         initscr();

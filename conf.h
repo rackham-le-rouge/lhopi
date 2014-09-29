@@ -24,6 +24,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/types.h>
 
 
@@ -131,7 +132,7 @@ typedef struct structProgramInfo_
 
 
 
-
+#include "debug.h"
 #include "game.h"
 #include "drawing.h"
 #include "main.h"

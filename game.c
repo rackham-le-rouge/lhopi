@@ -140,17 +140,17 @@ void playGame(structProgramInfo* p_structCommon)
 				/* When the user drop a rock */
 
 				/* Put the color information in the matrix */
-				p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] =
+				p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] =
 					p_structCommon->iCurrentUserColor;
 
 				/* Put the text information in the matrix */
-				p_structCommon->cGrid[TEXT_MATRIX][l_iCursorX][l_iCursorY] =
+				p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX] =
 					' ';
 
 				/* Draw the block of the current user (the other blocks are draw by
 				   another function) */
 				drawElement(l_iCursorX + l_iOffsetX, l_iCursorY + l_iOffsetY,
-					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorX][l_iCursorY],
+					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
 					p_structCommon->iCurrentUserColor);
 			}
 
@@ -161,9 +161,8 @@ void playGame(structProgramInfo* p_structCommon)
 			}
 		}
 
-
 		/* Check code, in order to forbid access to already reserved boxes */
-		if((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] != enumNoir)
+		if((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] != enumNoir)
 		{
 			/* So there is something here and it is not me */
 			switch(l_iMovement)
@@ -195,7 +194,7 @@ void playGame(structProgramInfo* p_structCommon)
 			}
 
 			/* If with bad luck you go over the grid */
-			while((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorX][l_iCursorY] != enumNoir)
+			while((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] != enumNoir)
 			{
 				/* Find random coordinate with the simplest way */
 				l_iCursorX = rand() % p_structCommon->iSizeX;

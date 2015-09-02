@@ -126,7 +126,7 @@ void initColor(void)
         init_pair(enumCyan, COLOR_BLACK, COLOR_CYAN);
         init_pair(enumBlanc, COLOR_BLACK, COLOR_WHITE);
         init_pair(enumConsole, COLOR_BLACK, COLOR_WHITE);
-	init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
+        init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
 #else
         init_pair(enumNoir, COLOR_BLACK, COLOR_BLACK);
         init_pair(enumRouge, COLOR_RED, COLOR_BLACK);
@@ -137,7 +137,7 @@ void initColor(void)
         init_pair(enumCyan, COLOR_CYAN, COLOR_BLACK);
         init_pair(enumBlanc, COLOR_WHITE, COLOR_BLACK);
         init_pair(enumConsole, COLOR_BLACK, CONSOLE_WHITE);
-	init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
+        init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
 #endif
 }
 
@@ -159,7 +159,7 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
 		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM + 1), '_' , enumLine);
-						/* We put -1 in order to take care of the scpace taken by this line */
+		/* We put -1 in order to take care of the scpace taken by this line */
 	}
 }
 

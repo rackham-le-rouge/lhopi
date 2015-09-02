@@ -47,54 +47,54 @@
 #define CONFIG_H
 
 /* Parameters of the program */
-#define CONSOLE_SPACE_ON_BOARD_BOTTOM	4	/* Means there is 4 lines at the bottom of the game board reserved to display */
-						/* informations and, later, the communication box */
-#define DEFAULT_PLAYERS			2	/* Default number of players per play */
-#define DEFAULT_GRID_LENGHT		19
-#define DEFAULT_GRID_HEIGHT		19
-#define COLOR_MATRIX			0	/* The matrix 'layer'dedicated to store color */
-#define TEXT_MATRIX			1	/* The matrix 'layer' with the character to display */
+#define CONSOLE_SPACE_ON_BOARD_BOTTOM   4   /* Means there is 4 lines at the bottom of the game board reserved to display */
+                                            /* informations and, later, the communication box */
+#define DEFAULT_PLAYERS                 2   /* Default number of players per play */
+#define DEFAULT_GRID_LENGHT             19
+#define DEFAULT_GRID_HEIGHT             19
+#define COLOR_MATRIX                    0   /* The matrix 'layer'dedicated to store color */
+#define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
 
 /* Cursor parameters */
-#define CURSOR_COLOR			COLOR_WHITE
-#define CURSOR_CHARACTER		219	/* The full matrix */
+#define CURSOR_COLOR                    COLOR_WHITE
+#define CURSOR_CHARACTER                219 /* The full matrix */
 
 
 /* Colors of lines (Bottom and Top) */
-#define COLOR_LINE_BG_BOTTOM    COLOR_RED
-#define COLOR_LINE_BG_TOP       COLOR_BLUE
-#define COLOR_LINE_FG_BOTTOM    COLOR_BLACK
-#define COLOR_LINE_FG_TOP       COLOR_BLACK
+#define COLOR_LINE_BG_BOTTOM            COLOR_RED
+#define COLOR_LINE_BG_TOP               COLOR_BLUE
+#define COLOR_LINE_FG_BOTTOM            COLOR_BLACK
+#define COLOR_LINE_FG_TOP               COLOR_BLACK
 
 
 /* Colors of element in a single matrix */
-#define COLOR_ELEMENT_FG        COLOR_BLACK
-#define GRAPHIC_MODE            1              /* 1 background is colored 0 background id black and letter is colored */
+#define COLOR_ELEMENT_FG                COLOR_BLACK
+#define GRAPHIC_MODE                    1   /* 1 background is colored 0 background id black and letter is colored */
 
 
 /* Colors of part of the screen */
-#define CONSOLE_LINE_COLOR	COLOR_MAGENTA
+#define CONSOLE_LINE_COLOR              COLOR_MAGENTA
 
 /* Directions */
-#define DIRECTION_UP		0
-#define DIRECTION_DOWN		1
-#define DIRECTION_LEFT		2
-#define DIRECTION_RIGHT		3
+#define DIRECTION_UP                    0
+#define DIRECTION_DOWN                  1
+#define DIRECTION_LEFT                  2
+#define DIRECTION_RIGHT                 3
 
 
 typedef enum
 {
-        enumNoir =      3,
-        enumRouge =     4,
-        enumVert =      5,
-        enumJaune =     6,
-        /* 7 is reserved don't use it ! */
-        enumBleu =      8,
-        enumMagenta =   9,
-        enumCyan =      10,
-        enumBlanc =     11,
-	enumConsole =	12,
-	enumLine = 	13
+    enumNoir =      3,
+    enumRouge =     4,
+    enumVert =      5,
+    enumJaune =     6,
+    /* 7 is reserved don't use it ! */
+    enumBleu =      8,
+    enumMagenta =   9,
+    enumCyan =      10,
+    enumBlanc =     11,
+    enumConsole =   12,
+    enumLine =      13
 }g_enumJeuxDeCouleursDispo;
 
 
@@ -120,14 +120,14 @@ typedef enum
   */
 typedef struct structProgramInfo_
 {
-        unsigned int  iCol;
-        unsigned int  iRow;
-	unsigned int  iSizeX;
-	unsigned int  iSizeY;
-	unsigned int  iCurrentUserNumber;
-	unsigned int  iCurrentUserColor;
-	char*** cGrid;
-	unsigned char padding[7];
+    unsigned int  iCol;
+    unsigned int  iRow;
+    unsigned int  iSizeX;
+    unsigned int  iSizeY;
+    unsigned int  iCurrentUserNumber;
+    unsigned int  iCurrentUserColor;
+    char*** cGrid;
+    unsigned char padding[7];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

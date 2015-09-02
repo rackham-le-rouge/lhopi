@@ -12,6 +12,8 @@
 
 #include "conf.h"
 
+extern FILE* g_FILEOutputLogStream;
+
 
 /** @brief Blues lines - Top and bottom of the screen */
 void initBar(void)

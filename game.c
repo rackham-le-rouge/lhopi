@@ -11,6 +11,7 @@
 
 #include "conf.h"
 
+extern FILE* g_FILEOutputLogStream;
 
 
 

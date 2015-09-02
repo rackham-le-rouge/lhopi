@@ -25,6 +25,7 @@ char rev[] = "0.0";
 /** Revision and version number */
 char ver[] = "1.0";
 
+FILE* g_FILEOutputLogStream;
 
 
 
@@ -94,6 +95,9 @@ int main(int argc, char** argv)
 	char* l_cBuffer;
 	char* l_cBuffer2;
 	structProgramInfo* l_structCommon;
+
+    /* Output of the log informations - put stdin for nothing -*/
+    g_FILEOutputLogStream = stdin;
 
 	/* Start the random machine */
 	srand(time(NULL));

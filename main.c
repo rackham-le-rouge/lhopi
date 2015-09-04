@@ -51,7 +51,7 @@ void killTheApp(void)
   */
 int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_structCommon)
 {
-	int l_iTmp;
+        int l_iTmp;
 
         if(argc > 1)
         {
@@ -69,14 +69,14 @@ int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_str
                                 {
                                         endwin();
                                         printf("Lhopi - Command line use : lhopi [-h{help}] [-s Width Height{new dimensions}]\n");
-					/* Quit function now, then kill the app in order to display help message */
-					return 1;
+                                        /* Quit function now, then kill the app in order to display help message */
+                                        return 1;
                                 }
                         }
                         /* Else the parameter is ignored, use strcmp on it cause a segfault */
                 }
-	}
-	return 0;
+        }
+        return 0;
 }
 
 
@@ -118,21 +118,21 @@ int main(int argc, char** argv)
 		exit(EXIT_SUCCESS);
 	}
 
-        /*  Start the graphic mode */
-        initscr();
+    /*  Start the graphic mode */
+    initscr();
 
-        /*  Registeration of the final function (because since the previous line, screen is handled by ncurses) */
-        atexit(killTheApp);
+    /*  Registeration of the final function (because since the previous line, screen is handled by ncurses) */
+    atexit(killTheApp);
 
-        /*  Hide the cursor */
-        curs_set(0);
+    /*  Hide the cursor */
+    curs_set(0);
 
-        noecho();
-        cbreak();
+    noecho();
+    cbreak();
 
-        /*  Initialisation of some graphical elements */
-        initColor();
-        getmaxyx(stdscr, l_structCommon->iRow, l_structCommon->iCol);
+    /*  Initialisation of some graphical elements */
+    initColor();
+    getmaxyx(stdscr, l_structCommon->iRow, l_structCommon->iCol);
 
 	/* Save enought memory to display a line - Add 2 to be safe */
 	l_cBuffer = (char*)malloc((l_structCommon->iCol + 2) * sizeof(char));
@@ -140,32 +140,32 @@ int main(int argc, char** argv)
 	memset(l_cBuffer, ' ', l_structCommon->iCol + 2);
 	memset(l_cBuffer2, ' ', l_structCommon->iCol + 2);
 
-        sprintf(l_cBuffer, "Lhopi - Ver %s - Rev %s", ver, rev);
-        initBar();
+    sprintf(l_cBuffer, "Lhopi - Ver %s - Rev %s", ver, rev);
+    initBar();
 
-        /*  Right message on the bottom bar - put l_iTmp as an unsigned value because, in this case, l_iTmp can't (musn't) be negative */
-        for(l_iTmp=0; (unsigned)l_iTmp < l_structCommon->iCol - strlen(l_cBuffer) ; l_iTmp++)
-        {
-                l_cBuffer2[l_iTmp] = ' ';
-                l_cBuffer2[l_iTmp+1] = '\0';
-        }
-        strcat(l_cBuffer2, l_cBuffer);
-        botText(l_cBuffer2);
+    /*  Right message on the bottom bar - put l_iTmp as an unsigned value because, in this case, l_iTmp can't (musn't) be negative */
+    for(l_iTmp=0; (unsigned)l_iTmp < l_structCommon->iCol - strlen(l_cBuffer) ; l_iTmp++)
+    {
+           l_cBuffer2[l_iTmp] = ' ';
+           l_cBuffer2[l_iTmp+1] = '\0';
+    }
+    strcat(l_cBuffer2, l_cBuffer);
+    botText(l_cBuffer2);
 
 
-        /*  Don't ask Enter key in order to complete a getch() */
-        /*nodelay(stdscr, 1);*/
+    /*  Don't ask Enter key in order to complete a getch() */
+    /*nodelay(stdscr, 1);*/
 
 	playGame(l_structCommon);
 
 	/* Release memory */
-       for(l_iIteratorLayer = 0; l_iIteratorLayer < 2 ; l_iIteratorLayer++)
+    for(l_iIteratorLayer = 0; l_iIteratorLayer < 2 ; l_iIteratorLayer++)
+    {
+        for(l_iIterator = 0 ; l_iIterator < l_structCommon->iSizeY ; l_iIterator++)
         {
-                for(l_iIterator = 0 ; l_iIterator < l_structCommon->iSizeY ; l_iIterator++)
-                {
-                        free(l_structCommon->cGrid[l_iIteratorLayer][l_iIterator]);
+            free(l_structCommon->cGrid[l_iIteratorLayer][l_iIterator]);
 		}
-                free(l_structCommon->cGrid[l_iIteratorLayer]);
+        free(l_structCommon->cGrid[l_iIteratorLayer]);
 	}
 
 	free(l_structCommon->cGrid);

@@ -13,6 +13,7 @@
 
 
 void gameInit(structProgramInfo* p_structCommon);
+int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY,structProgramInfo* p_structCommon);
 void playGame(structProgramInfo* p_structCommon);
 
 #endif

@@ -70,8 +70,31 @@ void gameInit(structProgramInfo* p_structCommon)
 }
 
 
+
+/** @brief	Function to handle loop formation
+            From test (if a loop is created or not) to the filling of it.
+  * @param l_iCursorX, X position (position in a text line in the screen) supposed to be the last
+                    block needed to make the loop
+  * @param l_iCursorY, Y position (the line number). Y axis, vertical axis
+  * @param p_structCommon : Struct with all program informations
+  */
+int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+{
+    /* Find if there is two neighboor - if not it is dead */
+    UNUSED(p_iCursorX);
+    UNUSED(p_iCursorY);
+    UNUSED(p_structCommon);
+    return 0; 
+}
+
+
+
+
+
+
+
 /** @brief	The game loop function
-  * @param      p_structCommon : Struct with all program informations
+  * @param  p_structCommon : Struct with all program informations
   */
 void playGame(structProgramInfo* p_structCommon)
 {
@@ -91,7 +114,7 @@ void playGame(structProgramInfo* p_structCommon)
 	l_iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
 
-	p_structCommon->iCurrentUserColor = 1; /* FIXME */
+	p_structCommon->iCurrentUserColor = 1; /* FIXME multiplayer mode incoming */
 
 	/* Init the game, screen stuff etc... */
 	gameInit(p_structCommon);
@@ -153,6 +176,10 @@ void playGame(structProgramInfo* p_structCommon)
 				drawElement(l_iCursorX + l_iOffsetX, l_iCursorY + l_iOffsetY,
 					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
 					p_structCommon->iCurrentUserColor);
+
+                /* Check neighborhood - If there is two contigous blocks of the player's
+                   color that means there is maybee a loop */
+                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
 			}
 
 			default:

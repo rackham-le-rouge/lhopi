@@ -30,5 +30,7 @@ int drawElement(int, int, unsigned char, int);
 void initColor(void);
 void drawTheBoardGame(structProgramInfo* p_structCommon);
 void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, char*** p_cGrid);
+void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, char* p_sLineContent);
+
 
 #endif

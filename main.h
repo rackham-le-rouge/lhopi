@@ -23,6 +23,7 @@
 
 void killTheApp(void);
 int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_structCommon);
+void logBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine);
 
 #endif
 

@@ -127,6 +127,7 @@ void initColor(void)
         init_pair(enumBlanc, COLOR_BLACK, COLOR_WHITE);
         init_pair(enumConsole, COLOR_BLACK, COLOR_WHITE);
         init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
+        init_pair(enumLogLine, CONSOLE_LOGTEXT_COLOR, COLOR_BLACK);
 #else
         init_pair(enumNoir, COLOR_BLACK, COLOR_BLACK);
         init_pair(enumRouge, COLOR_RED, COLOR_BLACK);
@@ -138,6 +139,7 @@ void initColor(void)
         init_pair(enumBlanc, COLOR_WHITE, COLOR_BLACK);
         init_pair(enumConsole, COLOR_BLACK, CONSOLE_WHITE);
         init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
+        init_pair(enumLogLine, CONSOLE_LOGTEXT_COLOR, COLOR_BLACK);
 #endif
 }
 
@@ -196,3 +198,25 @@ void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned in
 		refresh();
 	}
 }
+
+
+/** @brief This function have to draw the board game taking care of the size of the screen
+  * @param p_structCommon : Struct with all the program information
+  */
+void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, char* p_sLineContent)
+{
+	unsigned int l_iIterateur;
+
+	l_iIterateur = 0;
+
+	/* Clean bars */
+	//initBar();
+
+
+	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
+	{
+		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM ) + p_iLineNumber, p_sLineContent[l_iIterateur] , enumLogLine);
+		/* We put -1 in order to take care of the scpace taken by this line */
+	}
+}
+

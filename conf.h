@@ -49,6 +49,7 @@
 /* Parameters of the program */
 #define CONSOLE_SPACE_ON_BOARD_BOTTOM   4   /* Means there is 4 lines at the bottom of the game board reserved to display */
                                             /* informations and, later, the communication box */
+#define LOG_DIMENTION                   ((CONSOLE_SPACE_ON_BOARD_BOTTOM - 1))   /* Want three lines in the bottom log display */
 #define DEFAULT_PLAYERS                 2   /* Default number of players per play */
 #define DEFAULT_GRID_LENGHT             19
 #define DEFAULT_GRID_HEIGHT             19
@@ -74,6 +75,7 @@
 
 /* Colors of part of the screen */
 #define CONSOLE_LINE_COLOR              COLOR_MAGENTA
+#define CONSOLE_LOGTEXT_COLOR           COLOR_YELLOW
 
 /* Directions */
 #define DIRECTION_UP                    0
@@ -94,9 +96,20 @@ typedef enum
     enumCyan =      10,
     enumBlanc =     11,
     enumConsole =   12,
-    enumLine =      13
+    enumLine =      13,
+    enumLogLine =   14
 }g_enumJeuxDeCouleursDispo;
 
+
+typedef enum
+{
+   DISPLAY = 0,
+   CLEAN_L0,
+   CLEAN_L1,
+   CLEAN_L2,
+   CLEAN_BUF,
+   ADD_LINE
+}g_enumLogBar;
 
 
 /**

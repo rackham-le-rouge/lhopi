@@ -20,7 +20,7 @@
 
 
 
-#define debug(M, ...) fprintf(g_FILEOutputLogStream, "DEBUG %s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define debug(M) fprintf(g_FILEOutputLogStream, "DEBUG %s:%d: " M "\n", __FILE__, __LINE__)
 
 #define log_err(M, ...) fprintf(g_FILEOutputLogStream, "[ERROR] (%s:%d: errno: %d) " M "\n", __FILE__, __LINE__, errno, ##__VA_ARGS__)
 

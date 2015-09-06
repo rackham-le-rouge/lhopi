@@ -246,7 +246,7 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
 
-    if(loopBrowsing(p_iCursorX, p_iCursorY, p_structCommon) == 0)
+    if(loopBrowsing(p_structCommon) == 0)
     {
         return EXIT_FAILURE;
     }

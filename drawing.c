@@ -184,13 +184,11 @@ void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned in
 		/* draw the cursor */
 		drawElement(p_iCursorX + p_iOffsetX, p_iCursorY + p_iOffsetY, ' ' , enumConsole);
 
-		debug("before%d", 1);
 		/* re-draw the grid on the former position of the cursor */
 		drawElement(l_iPreviousCursorXPosition + p_iOffsetX,
 			l_iPreviousCursorYPosition + p_iOffsetY,
 			p_cGrid[TEXT_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition],
 			p_cGrid[COLOR_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition]);
-		debug("after%d", 1);
 		/* refresh of the 'previous' values */
 		l_iPreviousCursorXPosition = p_iCursorX;
 		l_iPreviousCursorYPosition = p_iCursorY;
@@ -208,10 +206,6 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
 	unsigned int l_iIterateur;
 
 	l_iIterateur = 0;
-
-	/* Clean bars */
-	//initBar();
-
 
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{

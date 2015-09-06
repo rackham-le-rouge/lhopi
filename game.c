@@ -98,33 +98,6 @@ void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, struct
 
 
 
-/** @brief Find if there is the minimal condition for a loop. That's a bloc putted between two others.
-  *  On the other cases, it is just a block next to other ones -useless- or an alone block -useless too-
-  *  Only block putted between two other blocs -wathever their configurations- is usefull for this algo
-  * @param p_iCursorX : X position of the new block
-  * @param p_iCursorY : Y position of the new block
-  * @param p_structCommon : Struct with all program informations
-  * @return TRUE if the minimal condition is completed. FALSE else.
-  */
-int goodNeibourhoodForALoop(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
-{
-    char l_cBorderCount = 0;
-
-    /* when one of these conditions are true, the ternary operation in the next if block going to send back position of the current cursor, 
-     * and at this position the grid must be equal to p_structCommon->iCurrentUserColor that's why we have to uncount this case in the border_count */
-    if(p_iCursorY - 1 > p_structCommon->iSizeY) l_cBorderCount--;   /* cause we work with unsigned */ 
-    if(p_iCursorY + 1 > p_structCommon->iSizeY) l_cBorderCount--;
-    if(p_iCursorX - 1 > p_structCommon->iSizeX) l_cBorderCount--;   /* cause we work with unsigned */
-    if(p_iCursorX + 1 > p_structCommon->iSizeX) l_cBorderCount--;
-
-    if(p_structCommon->cGrid[COLOR_MATRIX][(p_iCursorY - 1 > p_structCommon->iSizeY) ? p_iCursorY : p_iCursorY - 1][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-    if(p_structCommon->cGrid[COLOR_MATRIX][(p_iCursorY + 1 > p_structCommon->iSizeY) ? p_iCursorY : p_iCursorY + 1][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][(p_iCursorX - 1 > p_structCommon->iSizeX) ? p_iCursorX : p_iCursorX - 1] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][(p_iCursorX + 1 > p_structCommon->iSizeX) ? p_iCursorX : p_iCursorX + 1] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-
-    return (l_cBorderCount > 1) ? TRUE : FALSE;
-}
-
 
 /** @brief	Function to mark neighbour with the status POINT_TO_EXPLORE. And if we reach the POINT_START, leave it !
   * @param p_iCursorX, X position to the point to analyse
@@ -234,12 +207,6 @@ int loopBrowsing(structProgramInfo* p_structCommon)
   */
 int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
 {
-    /* Find if there is two neighboor - if not it is dead */
-    if(goodNeibourhoodForALoop(p_iCursorX, p_iCursorY, p_structCommon) == FALSE)
-    {
-        return EXIT_FAILURE;
-    }
-
     /* Clean the -computation- grid */
     cleanGridLayer(LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
 

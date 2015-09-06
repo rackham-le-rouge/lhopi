@@ -17,7 +17,7 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY,structProgra
 void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, structProgramInfo* p_structCommon);
 int markNeighbour(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon);
 int goodNeibourhoodForALoop(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon);
-int loopBrowsing(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon);
+int loopBrowsing(structProgramInfo* p_structCommon);
 void playGame(structProgramInfo* p_structCommon);
 
 #endif

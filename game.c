@@ -160,12 +160,10 @@ int markNeighbour(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgra
 
 
 /** @brief	Function to find if there is at least one loop involving the starting point provided in the parameters
-  * @param p_iCursorX, X position (position in a text line in the screen) supposed to be the last block needed to make the loop
-  * @param p_iCursorY, Y position (the line number). Y axis, vertical axis
   * @param p_structCommon : Struct with all program informations
   * @return 0 if there is no loop, 1 if there is at leat one loop
   */
-int loopBrowsing(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+int loopBrowsing(structProgramInfo* p_structCommon)
 {
     unsigned int l_iX;
     unsigned int l_iY;
@@ -173,11 +171,6 @@ int loopBrowsing(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgram
     unsigned int l_iOffsetY;
     unsigned short int l_iReturnValue;
     char l_bSomethingChanged;
-
-
-    /* FIXME */
-    UNUSED(p_iCursorX);
-    UNUSED(p_iCursorY);
 
     l_bSomethingChanged = 0;
     l_iReturnValue = 0;

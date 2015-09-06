@@ -126,6 +126,38 @@ int goodNeibourhoodForALoop(unsigned int p_iCursorX, unsigned int p_iCursorY, st
 }
 
 
+/** @brief	Function to mark neighbour with the status POINT_TO_EXPLORE. And if we reach the POINT_START, leave it !
+  * @param p_iCursorX, X position to the point to analyse
+  * @param p_iCursorY, Y position (the line number)
+  * @param p_structCommon : Struct with all program informations
+  * @return 0 if POINT_START was not met, 1 else.
+  */
+int markNeighbour(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+{
+    /* Need to mark neighbours with TO_EXPLORE flag */
+    if(p_iCursorY < p_structCommon->iSizeY && p_iCursorX < p_structCommon->iSizeX)
+    {
+        if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] == POINT_START)
+        {
+            /* this is the starting point, thus we've reached the origin, loop is OK */
+            return 1;
+        }
+
+        if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] == POINT_EXPLORED)
+        {
+            /* this neighbour was already visited */
+            return 0;
+        }
+
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] =
+            (p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor)  ?
+                POINT_TO_EXPLORE                                                                                        :
+                p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX];
+    }
+    return 0;
+}
+
+
 
 /** @brief	Function to find if there is at least one loop involving the starting point provided in the parameters
   * @param p_iCursorX, X position (position in a text line in the screen) supposed to be the last block needed to make the loop
@@ -137,81 +169,56 @@ int loopBrowsing(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgram
 {
     unsigned int l_iX;
     unsigned int l_iY;
+    unsigned int l_iOffsetX;
+    unsigned int l_iOffsetY;
+    unsigned short int l_iReturnValue;
     char l_bSomethingChanged;
+
 
     /* FIXME */
     UNUSED(p_iCursorX);
     UNUSED(p_iCursorY);
 
     l_bSomethingChanged = 0;
+    l_iReturnValue = 0;
 
     do
     {
+        /* reset flag */
+        l_bSomethingChanged = 0;
+
         for(l_iY = 0; l_iY < p_structCommon->iSizeY; l_iY++)
         {
             for(l_iX = 0; l_iX < p_structCommon->iSizeX; l_iX++)
             {
-                if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] == POINT_START ||                             /* FIXME make code cleaner than that ! */
+                if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] == POINT_START ||
                    p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] == POINT_TO_EXPLORE)
                 {
-                    /* Need to mark neighbours with TO_EXPLORE flag */
-                    if(l_iY - 1 < p_structCommon->iSizeY)
-                    {
-                        if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY - 1][l_iX] == POINT_START)
-                        {
-                            /* this is the starting point, thus we've reached the origin, loop is OK */
-                            return 1;
-                        }
+                    l_iOffsetX = 0;
+                    l_iOffsetY = -1;
+                    l_iReturnValue += markNeighbour(l_iX + l_iOffsetX, l_iY + l_iOffsetY, p_structCommon);
 
-                        p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY - 1][l_iX] =
-                            (p_structCommon->cGrid[COLOR_MATRIX][l_iY - 1][l_iX] == (signed)p_structCommon->iCurrentUserColor)  ?
-                                POINT_TO_EXPLORE                                                                                :
-                                p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY - 1][l_iX];
-                    }
-                    if(l_iX - 1 < p_structCommon->iSizeX)
-                    {
-                        if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX - 1] == POINT_START)
-                        {
-                            /* this is the starting point, thus we've reached the origin, loop is OK */
-                            return 1;
-                        }
+                    l_iOffsetX = 0;
+                    l_iOffsetY = 1;
+                    l_iReturnValue += markNeighbour(l_iX + l_iOffsetX, l_iY + l_iOffsetY, p_structCommon);
 
-                        p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX - 1] =
-                            (p_structCommon->cGrid[COLOR_MATRIX][l_iY][l_iX - 1] == (signed)p_structCommon->iCurrentUserColor)  ?
-                                POINT_TO_EXPLORE                                                                                :
-                                p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX - 1];
-                    }
-                    if(l_iX + 1 < p_structCommon->iSizeX)
-                    {
-                        if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX + 1] == POINT_START)
-                        {
-                            /* this is the starting point, thus we've reached the origin, loop is OK */
-                            return 1;
-                        }
+                    l_iOffsetX = -1;
+                    l_iOffsetY = 0;
+                    l_iReturnValue += markNeighbour(l_iX + l_iOffsetX, l_iY + l_iOffsetY, p_structCommon);
 
-                        p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX + 1] =
-                            (p_structCommon->cGrid[COLOR_MATRIX][l_iY][l_iX + 1] == (signed)p_structCommon->iCurrentUserColor)  ?
-                                POINT_TO_EXPLORE                                                                                :
-                                p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX + 1];
-                    }
-                    if(l_iY + 1 < p_structCommon->iSizeY)
-                    {
-                        if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY + 1][l_iX] == POINT_START)
-                        {
-                            /* this is the starting point, thus we've reached the origin, loop is OK */
-                            return 1;
-                        }
-
-                        p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY + 1][l_iX] =
-                            (p_structCommon->cGrid[COLOR_MATRIX][l_iY + 1][l_iX] == (signed)p_structCommon->iCurrentUserColor)  ?
-                                POINT_TO_EXPLORE                                                                                :
-                                p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY + 1][l_iX];
-                    }
-
+                    l_iOffsetX = 1;
+                    l_iOffsetY = 0;
+                    l_iReturnValue += markNeighbour(l_iX + l_iOffsetX, l_iY + l_iOffsetY, p_structCommon);
 
                     /* Finish, set this point in EXPLORED in order to disable it */
                     p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] = POINT_EXPLORED;
                     l_bSomethingChanged = 1;
+
+                    /* If there is something new */
+                    if(l_iReturnValue > 0)
+                    {
+                        return 1;
+                    }
                 }
             }
         }

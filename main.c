@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 	structProgramInfo* l_structCommon;
 
     /* Output of the log informations - put stdin for nothing -*/
-    g_FILEOutputLogStream = stdin;
+    g_FILEOutputLogStream = stderr;
 
 	/* Start the random machine */
 	srand(time(NULL));
@@ -108,8 +108,8 @@ int main(int argc, char** argv)
 	/* Init values */
 	l_structCommon->iRow = -1;
 	l_structCommon->iCol = -1;
-	l_structCommon->iSizeX = 19;
-	l_structCommon->iSizeY = 19;
+	l_structCommon->iSizeX = DEFAULT_GRID_LENGHT;
+	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
 	l_iTmp = 0;
 
 	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)

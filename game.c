@@ -38,12 +38,13 @@ void gameInit(structProgramInfo* p_structCommon)
 	/* Init of the grid matrix. That mean we are reserving memory, and fill it with default data */
 
 	/* --> The first number is to select the matrix. Matrix 0 (selected with p_structCommon->cGrid[COLOR_MATRIX][whateverY][whateverX]) stores
-	   color for the given position X, Y
+	   color for the given position X, Y. The Matrix 1 is for the text to display on the screen. The Third is for the loop algorithme. See loop
+       function.
 	   --> The second layer is the text layer, in order to put special character for each user
 	*/
-	p_structCommon->cGrid = (char***)malloc(2 * sizeof(char**));
+	p_structCommon->cGrid = (char***)malloc(3 * sizeof(char**));
 
-	for(l_iIteratorLayer = 0; l_iIteratorLayer < 2 ; l_iIteratorLayer++)
+	for(l_iIteratorLayer = 0; l_iIteratorLayer < 3 ; l_iIteratorLayer++)
 	{
 		p_structCommon->cGrid[l_iIteratorLayer] = (char**)malloc(p_structCommon->iSizeY * sizeof(char*));
 		for(l_iIterator = 0 ; l_iIterator < p_structCommon->iSizeY ; l_iIterator++)
@@ -59,6 +60,9 @@ void gameInit(structProgramInfo* p_structCommon)
 					case TEXT_MATRIX:
 					l_iTmp = ' ';
 					break;
+					case LOOPALGO_MATRIX:
+					l_iTmp = ' ';
+					break;
 					default:
 					l_iTmp = 0;
 					break;
@@ -69,22 +73,82 @@ void gameInit(structProgramInfo* p_structCommon)
 	}
 }
 
+/** @brief	To clean a layer of the grid
+  * @param p_iLayer : layer to clean
+  * @param p_cFillingValue : value to put in the grid
+  * @param p_structCommon : Struct with all program informations
+  */
+void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, structProgramInfo* p_structCommon)
+{
+    unsigned int l_iX;
+    unsigned int l_iY;
+
+
+    for(l_iY = 0; l_iY < p_structCommon->iSizeY ; l_iY++)
+    {
+        for(l_iX = 0; l_iX < p_structCommon->iSizeX ; l_iX++)
+        {
+           p_structCommon->cGrid[p_iLayer][l_iY][l_iX] =  p_cFillingValue;
+        }
+    }
+}
+
+
+
+/** @brief Find if there is the minimal condition for a loop. That's a bloc putted between two others.
+  *  On the other cases, it is just a block next to other ones -useless- or an alone block -useless too-
+  *  Only block putted between two other blocs -wathever their configurations- is usefull for this algo
+  * @param p_iCursorX : X position of the new block
+  * @param p_iCursorY : Y position of the new block
+  * @param p_structCommon : Struct with all program informations
+  * @return TRUE if the minimal condition is completed. FALSE else.
+  */
+int goodNeibourhoodForALoop(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+{
+    char l_cBorderCount = 0;
+
+    /* when one of these conditions are true, the ternary operation in the next if block going to send back position of the current cursor, 
+     * and at this position the grid must be equal to p_structCommon->iCurrentUserColor that's why we have to uncount this case in the border_count */
+    if(p_iCursorY - 1 > p_structCommon->iSizeY) l_cBorderCount--;   /* cause we work with unsigned */ 
+    if(p_iCursorY + 1 > p_structCommon->iSizeY) l_cBorderCount--;
+    if(p_iCursorX - 1 > p_structCommon->iSizeX) l_cBorderCount--;   /* cause we work with unsigned */
+    if(p_iCursorX + 1 > p_structCommon->iSizeX) l_cBorderCount--;
+
+    if(p_structCommon->cGrid[COLOR_MATRIX][(p_iCursorY - 1 > p_structCommon->iSizeY) ? p_iCursorY : p_iCursorY - 1][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
+    if(p_structCommon->cGrid[COLOR_MATRIX][(p_iCursorY + 1 > p_structCommon->iSizeY) ? p_iCursorY : p_iCursorY + 1][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][(p_iCursorX - 1 > p_structCommon->iSizeX) ? p_iCursorX : p_iCursorX - 1] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][(p_iCursorX + 1 > p_structCommon->iSizeX) ? p_iCursorX : p_iCursorX + 1] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
+
+    return (l_cBorderCount > 1) ? TRUE : FALSE;
+}
+
+
 
 
 /** @brief	Function to handle loop formation
-            From test (if a loop is created or not) to the filling of it.
-  * @param l_iCursorX, X position (position in a text line in the screen) supposed to be the last
-                    block needed to make the loop
-  * @param l_iCursorY, Y position (the line number). Y axis, vertical axis
+  *          From test (if a loop is created or not) to the filling of it.
+  * @param p_iCursorX, X position (position in a text line in the screen) supposed to be the last
+  *          block needed to make the loop
+  * @param p_iCursorY, Y position (the line number). Y axis, vertical axis
   * @param p_structCommon : Struct with all program informations
+  * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
 int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
 {
     /* Find if there is two neighboor - if not it is dead */
-    UNUSED(p_iCursorX);
-    UNUSED(p_iCursorY);
-    UNUSED(p_structCommon);
-    return 0; 
+    if(goodNeibourhoodForALoop(p_iCursorX, p_iCursorY, p_structCommon) == FALSE)
+    {
+        return EXIT_FAILURE;
+    }
+
+    /* Clean the -computation- grid */
+    cleanGridLayer(LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+
+    /* Set the starting point of the forsaken loop */
+    p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
+
+
+    return EXIT_FAILURE; 
 }
 
 

@@ -54,11 +54,21 @@
 #define DEFAULT_GRID_HEIGHT             19
 #define COLOR_MATRIX                    0   /* The matrix 'layer'dedicated to store color */
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
+#define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
 
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */
 
+
+/* Different kind of point to used by the loop algo in its dedicated layer of the grid */
+typedef enum
+{
+    POINT_EMPTY = 0,
+    POINT_START,
+    POINT_TO_EXPLORE,
+    POINT_EXPLORED
+}g_enumKindOfPoints;
 
 /* Colors of lines (Bottom and Top) */
 #define COLOR_LINE_BG_BOTTOM            COLOR_RED

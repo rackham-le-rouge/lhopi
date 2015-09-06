@@ -35,6 +35,9 @@ void gameInit(structProgramInfo* p_structCommon)
 	/* Preparation of the graphic part of the game */
 	drawTheBoardGame(p_structCommon);
 
+   logBar(p_structCommon, ADD_LINE, "Party starting...");
+   logBar(p_structCommon, DISPLAY, "");
+
 	/* Init of the grid matrix. That mean we are reserving memory, and fill it with default data */
 
 	/* --> The first number is to select the matrix. Matrix 0 (selected with p_structCommon->cGrid[COLOR_MATRIX][whateverY][whateverX]) stores

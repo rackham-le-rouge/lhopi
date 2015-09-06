@@ -81,6 +81,64 @@ int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_str
 
 
 
+void logBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine)
+{
+   int l_iIterator;
+   static char**  l_sLogStrings = NULL;
+
+   if(l_sLogStrings == NULL)
+   {
+      /* Means that it's the first time - do malloc */
+      l_sLogStrings = (char**)malloc(LOG_DIMENTION*sizeof(char*));
+      if(l_sLogStrings == NULL)
+      {
+         log_err("No memory available. Must close now.%s", "\n");
+         exit(ENOMEM);
+      }
+
+      for( l_iIterator = 0; l_iIterator < LOG_DIMENTION; l_iIterator++)
+      {
+         l_sLogStrings[l_iIterator] = (char*)malloc(p_structCommon->iCol*sizeof(char));
+
+         if(l_sLogStrings[l_iIterator] == NULL)
+         {
+             log_err("No memory available. Can't create %d string. Must close now.\n", l_iIterator);
+             exit(ENOMEM);
+         }
+      }
+   }
+
+   switch(p_enumBarWantedAction)
+   {
+      case DISPLAY:
+         for(l_iIterator = 0; l_iIterator < LOG_DIMENTION; l_iIterator++)
+         {
+            drawLogLine(p_structCommon, l_iIterator, l_sLogStrings[l_iIterator]);
+         }
+         break;
+      case CLEAN_BUF:
+         for(l_iIterator = 0; l_iIterator < LOG_DIMENTION; l_iIterator++)
+         {
+            memset(l_sLogStrings[l_iIterator], ' ', p_structCommon->iCol);
+            l_sLogStrings[l_iIterator][p_structCommon->iCol - 1] = '\0';
+         }
+         break;
+      case ADD_LINE:
+         strcpy(l_sLogStrings[2], l_sLogStrings[1]);
+         strcpy(l_sLogStrings[1], l_sLogStrings[0]);
+         strcpy(l_sLogStrings[0], p_sNewLine);
+         break;
+      case CLEAN_L0:
+         break;
+      case CLEAN_L1:
+         break;
+      case CLEAN_L2:
+         break;
+      default:
+         break;
+    }
+}
+
 
 
 /** Main

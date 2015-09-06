@@ -22,9 +22,9 @@
 
 #define debug(M, ...) fprintf(g_FILEOutputLogStream, "DEBUG %s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-#define log_err(M, ...) fprintf(g_FILEOutputLogStream, "[ERROR] (%s:%d: errno: %s) " M "\n", __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+#define log_err(M, ...) fprintf(g_FILEOutputLogStream, "[ERROR] (%s:%d: errno: %d) " M "\n", __FILE__, __LINE__, errno, ##__VA_ARGS__)
 
-#define log_warn(M, ...) fprintf(g_FILEOutputLogStream, "[WARN] (%s:%d: errno: %s) " M "\n", __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+#define log_warn(M, ...) fprintf(g_FILEOutputLogStream, "[WARN] (%s:%d: errno: %d) " M "\n", __FILE__, __LINE__, errno, ##__VA_ARGS__)
 
 #define log_info(M, ...) fprintf(g_FILEOutputLogStream, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 

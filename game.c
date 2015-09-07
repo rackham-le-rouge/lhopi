@@ -110,9 +110,11 @@ int markNeighbour(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgra
     /* Need to mark neighbours with TO_EXPLORE flag */
     if(p_iCursorY < p_structCommon->iSizeY && p_iCursorX < p_structCommon->iSizeX)
     {
-        if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] == POINT_START)
+        if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] == POINT_START ||
+           p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] == POINT_START_EXPLORED)
         {
             /* this is the starting point, thus we've reached the origin, loop is OK */
+            debug("starting point found");
             return 1;
         }
 
@@ -177,7 +179,14 @@ int loopBrowsing(structProgramInfo* p_structCommon)
                     l_iReturnValue += markNeighbour(l_iX + l_iOffsetX, l_iY + l_iOffsetY, p_structCommon);
 
                     /* Finish, set this point in EXPLORED in order to disable it */
-                    p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] = POINT_EXPLORED;
+                    if(p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] != POINT_START)
+                    {
+                        p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] = POINT_EXPLORED;
+                    }
+                    else
+                    {
+                        p_structCommon->cGrid[LOOPALGO_MATRIX][l_iY][l_iX] = POINT_START_EXPLORED;
+                    }
                     l_bSomethingChanged = 1;
 
                     /* If there is something new */
@@ -194,6 +203,68 @@ int loopBrowsing(structProgramInfo* p_structCommon)
 }
 
 
+
+
+int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
+{
+    unsigned int l_iReturned;
+
+    l_iReturned = 0;
+
+    /* Point is'nt in the game grid */
+    if(p_iY > p_structCommon->iSizeY ||
+       p_iX > p_structCommon->iSizeX)
+    {
+        return 0;
+    }
+
+    /* Point doen't belong to the right user */
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != (signed)p_structCommon->iCurrentUserColor)
+    {
+        return 0;
+    }
+
+    /* We alreadu know this point */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED)
+    {
+        return 0;
+    }
+
+    /* There is a new point. Mark visited before doing anything */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START)
+    {
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED;
+    }
+
+    /* We have reached the starting point */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START && p_iHop > 1)
+    {
+        /* In this case, hop > 1 thus there is the result of a loop browsing */
+        return p_iHop;
+    }
+    else if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START && p_iHop <= 1)
+    {
+        /* In this case it is because we have jump on it from one of the four points next to the start point */
+        return 0;
+    }
+
+    p_iHop++;
+
+    /* recusive on the four other position next to this one */
+    /* If one of them disvover the starting point it will return a number bigger than 6, so kill the discovery machine here */
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY - 1, p_iX, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY + 1, p_iX, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX - 1, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX + 1, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+
+    /* Nothing was discovered, return 0 */
+    return 0;
+
+}
 
 
 
@@ -213,10 +284,17 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
 
-    if(loopBrowsing(p_structCommon) == 0)
+    if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_structCommon) > 6)
     {
-        return EXIT_FAILURE;
+        /* found */
+        logBar(p_structCommon, ADD_LINE, "Loops found");
+        logBar(p_structCommon, DISPLAY, "");
+        
+        return EXIT_SUCCESS;
     }
+
+    logBar(p_structCommon, ADD_LINE, "NO Loop found");
+    logBar(p_structCommon, DISPLAY, "");
     
 
     return EXIT_FAILURE; 

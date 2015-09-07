@@ -112,7 +112,6 @@ void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, struct
   *           point with this path. This number have to be returned to the caller, and so on until the first calling function
   *           in order to let it know the number of hops needed to complete the loop.
   */
-i
 int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
 {
     unsigned int l_iReturned;

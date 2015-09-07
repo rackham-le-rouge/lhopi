@@ -102,13 +102,22 @@ void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, struct
 
 
 
-
+/** @brief	Recursive function to browse blocs from a starting point to the end. If the starting point is found again
+  *         the recursive function will end and we know we have a loop. It takes at least 8 blocks to have a complete
+  *         loop with an empty block in it.
+  * @param p_iX : X position of the point to analyse
+  * @param p_iY : Y position of the point to analyse
+  * @param p_structCommon : Struct with all program informations
+  * @return 0 if there is nothing to see in this point. >0 number equals to the number of Hops needed to reach the starting
+  *           point with this path. This number have to be returned to the caller, and so on until the first calling function
+  *           in order to let it know the number of hops needed to complete the loop.
+  */
+i
 int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
 {
     unsigned int l_iReturned;
 
     l_iReturned = 0;
-
     /* Point is'nt in the game grid */
     if(p_iY > p_structCommon->iSizeY ||
        p_iX > p_structCommon->iSizeX)
@@ -135,12 +144,16 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
     }
 
     /* We have reached the starting point */
-    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START && p_iHop > 1)
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START && p_iHop > 1)
     {
         /* In this case, hop > 1 thus there is the result of a loop browsing */
         return p_iHop;
     }
-    else if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START && p_iHop <= 1)
+    else if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START && p_iHop == 0)
+    {
+        /* do nothing, we are on the STARTING_POINT */
+    }
+    else if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START && p_iHop == 1)
     {
         /* In this case it is because we have jump on it from one of the four points next to the start point */
         return 0;
@@ -161,16 +174,15 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 
     /* Nothing was discovered, return 0 */
     return 0;
-
 }
 
 
 
-/** @brief	Function to handle loop formation
+/** @brief	 Function to handle loop formation
   *          From test (if a loop is created or not) to the filling of it.
-  * @param p_iCursorX, X position (position in a text line in the screen) supposed to be the last
+  * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
   *          block needed to make the loop
-  * @param p_iCursorY, Y position (the line number). Y axis, vertical axis
+  * @param p_iCursorY : Y position (the line number). Y axis, vertical axis
   * @param p_structCommon : Struct with all program informations
   * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
@@ -185,7 +197,7 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
     if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_structCommon) > 6)
     {
         /* found */
-        logBar(p_structCommon, ADD_LINE, "Loops found");
+        logBar(p_structCommon, ADD_LINE, "Loop found");
         logBar(p_structCommon, DISPLAY, "");
         
         return EXIT_SUCCESS;

@@ -68,7 +68,8 @@ typedef enum
     POINT_EMPTY = 0,
     POINT_START,
     POINT_TO_EXPLORE,
-    POINT_EXPLORED
+    POINT_EXPLORED,
+    POINT_START_EXPLORED
 }g_enumKindOfPoints;
 
 /* Colors of lines (Bottom and Top) */

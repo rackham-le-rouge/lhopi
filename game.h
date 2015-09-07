@@ -15,7 +15,7 @@
 void gameInit(structProgramInfo* p_structCommon);
 int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY,structProgramInfo* p_structCommon);
 void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, structProgramInfo* p_structCommon);
-int goodNeibourhoodForALoop(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon);
+int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon);
 void playGame(structProgramInfo* p_structCommon);
 
 #endif

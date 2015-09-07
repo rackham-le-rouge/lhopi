@@ -98,58 +98,114 @@ void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, struct
 
 
 
-/** @brief Find if there is the minimal condition for a loop. That's a bloc putted between two others.
-  *  On the other cases, it is just a block next to other ones -useless- or an alone block -useless too-
-  *  Only block putted between two other blocs -wathever their configurations- is usefull for this algo
-  * @param p_iCursorX : X position of the new block
-  * @param p_iCursorY : Y position of the new block
+
+
+
+
+/** @brief	Recursive function to browse blocs from a starting point to the end. If the starting point is found again
+  *         the recursive function will end and we know we have a loop. It takes at least 8 blocks to have a complete
+  *         loop with an empty block in it.
+  * @param p_iX : X position of the point to analyse
+  * @param p_iY : Y position of the point to analyse
   * @param p_structCommon : Struct with all program informations
-  * @return TRUE if the minimal condition is completed. FALSE else.
+  * @return 0 if there is nothing to see in this point. >0 number equals to the number of Hops needed to reach the starting
+  *           point with this path. This number have to be returned to the caller, and so on until the first calling function
+  *           in order to let it know the number of hops needed to complete the loop.
   */
-int goodNeibourhoodForALoop(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+i
+int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
 {
-    char l_cBorderCount = 0;
+    unsigned int l_iReturned;
 
-    /* when one of these conditions are true, the ternary operation in the next if block going to send back position of the current cursor, 
-     * and at this position the grid must be equal to p_structCommon->iCurrentUserColor that's why we have to uncount this case in the border_count */
-    if(p_iCursorY - 1 > p_structCommon->iSizeY) l_cBorderCount--;   /* cause we work with unsigned */ 
-    if(p_iCursorY + 1 > p_structCommon->iSizeY) l_cBorderCount--;
-    if(p_iCursorX - 1 > p_structCommon->iSizeX) l_cBorderCount--;   /* cause we work with unsigned */
-    if(p_iCursorX + 1 > p_structCommon->iSizeX) l_cBorderCount--;
+    l_iReturned = 0;
+    /* Point is'nt in the game grid */
+    if(p_iY > p_structCommon->iSizeY ||
+       p_iX > p_structCommon->iSizeX)
+    {
+        return 0;
+    }
 
-    if(p_structCommon->cGrid[COLOR_MATRIX][(p_iCursorY - 1 > p_structCommon->iSizeY) ? p_iCursorY : p_iCursorY - 1][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-    if(p_structCommon->cGrid[COLOR_MATRIX][(p_iCursorY + 1 > p_structCommon->iSizeY) ? p_iCursorY : p_iCursorY + 1][p_iCursorX] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][(p_iCursorX - 1 > p_structCommon->iSizeX) ? p_iCursorX : p_iCursorX - 1] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][(p_iCursorX + 1 > p_structCommon->iSizeX) ? p_iCursorX : p_iCursorX + 1] == (signed)p_structCommon->iCurrentUserColor) l_cBorderCount++;
+    /* Point doen't belong to the right user */
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != (signed)p_structCommon->iCurrentUserColor)
+    {
+        return 0;
+    }
 
-    return (l_cBorderCount > 1) ? TRUE : FALSE;
+    /* We alreadu know this point */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED)
+    {
+        return 0;
+    }
+
+    /* There is a new point. Mark visited before doing anything */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START)
+    {
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED;
+    }
+
+    /* We have reached the starting point */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START && p_iHop > 1)
+    {
+        /* In this case, hop > 1 thus there is the result of a loop browsing */
+        return p_iHop;
+    }
+    else if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START && p_iHop == 0)
+    {
+        /* do nothing, we are on the STARTING_POINT */
+    }
+    else if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START && p_iHop == 1)
+    {
+        /* In this case it is because we have jump on it from one of the four points next to the start point */
+        return 0;
+    }
+
+    p_iHop++;
+
+    /* recusive on the four other position next to this one */
+    /* If one of them disvover the starting point it will return a number bigger than 6, so kill the discovery machine here */
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY - 1, p_iX, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY + 1, p_iX, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX - 1, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX + 1, p_structCommon);
+    if(l_iReturned > 6) return l_iReturned;
+
+    /* Nothing was discovered, return 0 */
+    return 0;
 }
 
 
 
-
-/** @brief	Function to handle loop formation
+/** @brief	 Function to handle loop formation
   *          From test (if a loop is created or not) to the filling of it.
-  * @param p_iCursorX, X position (position in a text line in the screen) supposed to be the last
+  * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
   *          block needed to make the loop
-  * @param p_iCursorY, Y position (the line number). Y axis, vertical axis
+  * @param p_iCursorY : Y position (the line number). Y axis, vertical axis
   * @param p_structCommon : Struct with all program informations
   * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
 int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
 {
-    /* Find if there is two neighboor - if not it is dead */
-    if(goodNeibourhoodForALoop(p_iCursorX, p_iCursorY, p_structCommon) == FALSE)
-    {
-        return EXIT_FAILURE;
-    }
-
     /* Clean the -computation- grid */
     cleanGridLayer(LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
 
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
 
+    if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_structCommon) > 6)
+    {
+        /* found */
+        logBar(p_structCommon, ADD_LINE, "Loop found");
+        logBar(p_structCommon, DISPLAY, "");
+        
+        return EXIT_SUCCESS;
+    }
+
+    logBar(p_structCommon, ADD_LINE, "NO Loop found");
+    logBar(p_structCommon, DISPLAY, "");
+    
 
     return EXIT_FAILURE; 
 }

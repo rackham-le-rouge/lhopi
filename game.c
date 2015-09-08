@@ -79,9 +79,10 @@ void gameInit(structProgramInfo* p_structCommon)
 /** @brief	To clean a layer of the grid
   * @param p_iLayer : layer to clean
   * @param p_cFillingValue : value to put in the grid
+  * @param p_enumToReplace : kind of point to replace in the selected grid. POINT_ALL is the default behavior
   * @param p_structCommon : Struct with all program informations
   */
-void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, structProgramInfo* p_structCommon)
+void cleanGridLayer(unsigned int p_iLayer, g_enumKindOfPoints p_enumToReplace, unsigned char p_cFillingValue, structProgramInfo* p_structCommon)
 {
     unsigned int l_iX;
     unsigned int l_iY;
@@ -91,7 +92,17 @@ void cleanGridLayer(unsigned int p_iLayer, unsigned char p_cFillingValue, struct
     {
         for(l_iX = 0; l_iX < p_structCommon->iSizeX ; l_iX++)
         {
-           p_structCommon->cGrid[p_iLayer][l_iY][l_iX] =  p_cFillingValue;
+            if(p_enumToReplace == POINT_ALL)
+            {
+                p_structCommon->cGrid[p_iLayer][l_iY][l_iX] =  p_cFillingValue;
+            }
+            else
+            {
+                if(p_structCommon->cGrid[p_iLayer][l_iY][l_iX] == (signed)p_enumToReplace)
+                {
+                    p_structCommon->cGrid[p_iLayer][l_iY][l_iX] = p_cFillingValue;
+                }
+            }
         }
     }
 }
@@ -118,8 +129,8 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 
     l_iReturned = 0;
     /* Point is'nt in the game grid */
-    if(p_iY > p_structCommon->iSizeY ||
-       p_iX > p_structCommon->iSizeX)
+    if(p_iY >= p_structCommon->iSizeY ||
+       p_iX >= p_structCommon->iSizeX)
     {
         return 0;
     }
@@ -177,6 +188,72 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 
 
 
+
+/** @brief	Recursive function to browse empty blocs from a starting point to the end. If all ends is a loop border
+  *         the recursive function will end and we know we have an area to fill.
+  * @param p_iX : X position of the point to analyse
+  * @param p_iY : Y position of the point to analyse
+  * @param p_structCommon : Struct with all program informations
+  * @return 0 if there is nothing to see in this point. 1 if we met a loop border on this side
+  *   or if this point lead to all enclosed points
+  */
+int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
+{
+    unsigned char l_bCheckReturnValue;
+
+    /* Point is'nt in the game grid  - means we are sure to be outside the loop*/
+    if(p_iY >= p_structCommon->iSizeY ||
+       p_iX >= p_structCommon->iSizeX)
+    {
+        return 0;
+    }
+
+    /* Point is a rock let by a player - behave like a limit of a loop
+       Loops include all rocks */
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != enumNoir)
+    {
+        return 1;
+    }
+
+    /* We alreadu know this point */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED_FILLING ||
+      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START_EXPLORED_FILLING)
+    {
+        return 1;
+    }
+
+    /* There is a new point. Mark visited before doing anything */
+    if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START_FILLING)
+    {
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_FILLING;
+    }
+    else
+    {
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_START_EXPLORED_FILLING;
+    }
+
+    /* This is a flag. 1 means 'since the begining all points leads to the loop border' 0 means
+     * we have reached a board limit */
+    l_bCheckReturnValue = 1;
+
+    /* recusive on the eight other positions next to this one */
+    /* If one of them disvover the limit of the board it returns 0. On the otherwise there is only 1 returned */
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX + 1, p_structCommon);
+
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX - 1, p_structCommon);
+
+    /* If the eight tested positions have returned 1, l_iCheckReturnValue == 1 */
+    return l_bCheckReturnValue;
+}
+
+
+
 /** @brief	 Function to handle loop formation
   *          From test (if a loop is created or not) to the filling of it.
   * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
@@ -188,7 +265,7 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
 {
     /* Clean the -computation- grid */
-    cleanGridLayer(LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+    cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, POINT_EMPTY, p_structCommon);
 
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
@@ -199,12 +276,37 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
         logBar(p_structCommon, ADD_LINE, "Loop found");
         logBar(p_structCommon, DISPLAY, "");
         
-        return EXIT_SUCCESS;
+    }
+    else
+    {
+        logBar(p_structCommon, ADD_LINE, "NO Loop found");
+        logBar(p_structCommon, DISPLAY, "");
     }
 
-    logBar(p_structCommon, ADD_LINE, "NO Loop found");
-    logBar(p_structCommon, DISPLAY, "");
+    for(p_iCursorY = 0; p_iCursorY < p_structCommon->iSizeY; p_iCursorY++)
+    { 
+        for(p_iCursorX = 0; p_iCursorX < p_structCommon->iSizeX; p_iCursorX++)
+        {
+            /* We are on an already busy matrix, jump over it */
+            if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][p_iCursorX] != enumNoir)
+            {
+                continue;
+            }
     
+            if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_structCommon) == 1)
+            {
+                /* found */
+                logBar(p_structCommon, ADD_LINE, "Area to fill found");
+                logBar(p_structCommon, DISPLAY, "");
+            }
+            else
+            {
+            }
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, POINT_EMPTY, p_structCommon);
+        }
+    }
 
     return EXIT_FAILURE; 
 }

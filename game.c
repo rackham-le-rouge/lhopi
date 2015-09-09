@@ -77,12 +77,21 @@ void gameInit(structProgramInfo* p_structCommon)
 }
 
 /** @brief	To clean a layer of the grid
-  * @param p_iLayer : layer to clean
-  * @param p_cFillingValue : value to put in the grid
-  * @param p_enumToReplace : kind of point to replace in the selected grid. POINT_ALL is the default behavior
+  * @param p_iLayerOrig : analyse informations of this layer
+  * @param p_iLayerDest : to modify this layer
+  * @param p_iFillingValue : value to put in the grid
+  * @param p_iToReplace : kind of point to replace in the selected grid. POINT_ALL is the default behavior
+  * @param p_iOffsetX : offset from the border of the screen. needed to draw new elements
+  * @param p_iOffsetY : offset from the border of the screen. needed to draw new elements
   * @param p_structCommon : Struct with all program informations
   */
-void cleanGridLayer(unsigned int p_iLayer, g_enumKindOfPoints p_enumToReplace, unsigned char p_cFillingValue, structProgramInfo* p_structCommon)
+void cleanGridLayer(unsigned int p_iLayerOrig,
+                    int p_iToReplace,
+                    unsigned int p_iLayerDest,
+                    int p_iFillingValue,
+                    unsigned int p_iOffsetX,
+                    unsigned int p_iOffsetY,
+                    structProgramInfo* p_structCommon)
 {
     unsigned int l_iX;
     unsigned int l_iY;
@@ -92,15 +101,24 @@ void cleanGridLayer(unsigned int p_iLayer, g_enumKindOfPoints p_enumToReplace, u
     {
         for(l_iX = 0; l_iX < p_structCommon->iSizeX ; l_iX++)
         {
-            if(p_enumToReplace == POINT_ALL)
+            if(p_iToReplace == POINT_ALL)
             {
-                p_structCommon->cGrid[p_iLayer][l_iY][l_iX] =  p_cFillingValue;
+                p_structCommon->cGrid[p_iLayerDest][l_iY][l_iX] =  p_iFillingValue;
             }
             else
             {
-                if(p_structCommon->cGrid[p_iLayer][l_iY][l_iX] == (signed)p_enumToReplace)
+                if(p_structCommon->cGrid[p_iLayerOrig][l_iY][l_iX] == p_iToReplace)
                 {
-                    p_structCommon->cGrid[p_iLayer][l_iY][l_iX] = p_cFillingValue;
+                    p_structCommon->cGrid[p_iLayerDest][l_iY][l_iX] = p_iFillingValue;
+                }
+                if(p_iLayerDest == COLOR_MATRIX &&
+                   p_structCommon->cGrid[p_iLayerOrig][l_iY][l_iX] == p_iToReplace)
+                {
+    				/* Draw the block of the current user (the other blocks are draw by
+    				   another function) */
+                    drawElement(l_iX + p_iOffsetX, l_iY + p_iOffsetY,
+                        p_structCommon->cGrid[TEXT_MATRIX][l_iY][l_iX],
+                        p_structCommon->iCurrentUserColor);
                 }
             }
         }
@@ -239,14 +257,22 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
     /* recusive on the eight other positions next to this one */
     /* If one of them disvover the limit of the board it returns 0. On the otherwise there is only 1 returned */
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX - 1, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX + 1, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
 
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX + 1, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX + 1, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX - 1, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
     l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX - 1, p_structCommon);
+    if(l_bCheckReturnValue == 0) return 0;
 
     /* If the eight tested positions have returned 1, l_iCheckReturnValue == 1 */
     return l_bCheckReturnValue;
@@ -259,13 +285,15 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
   * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
   *          block needed to make the loop
   * @param p_iCursorY : Y position (the line number). Y axis, vertical axis
+  * @param p_iOffsetX : used by sub function to draw the new points, that's the distance from the border of the screen
+  * @param p_iOffsetY : used by sub function to draw the new points, that's the distance from the border of the screen
   * @param p_structCommon : Struct with all program informations
   * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
-int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, structProgramInfo* p_structCommon)
 {
     /* Clean the -computation- grid */
-    cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, POINT_EMPTY, p_structCommon);
+    cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
 
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
@@ -275,13 +303,11 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
         /* found */
         logBar(p_structCommon, ADD_LINE, "Loop found");
         logBar(p_structCommon, DISPLAY, "");
-        
-    }
-    else
-    {
-        logBar(p_structCommon, ADD_LINE, "NO Loop found");
-        logBar(p_structCommon, DISPLAY, "");
-    }
+
+
+
+
+    p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START_FILLING;
 
     for(p_iCursorY = 0; p_iCursorY < p_structCommon->iSizeY; p_iCursorY++)
     { 
@@ -298,14 +324,24 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
                 /* found */
                 logBar(p_structCommon, ADD_LINE, "Area to fill found");
                 logBar(p_structCommon, DISPLAY, "");
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_iOffsetX, p_iOffsetY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_iOffsetX, p_iOffsetY, p_structCommon);
             }
             else
             {
             }
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, POINT_EMPTY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, POINT_EMPTY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
         }
+    }
+
+
+    }
+    else
+    {
+        logBar(p_structCommon, ADD_LINE, "NO Loop found");
+        logBar(p_structCommon, DISPLAY, "");
     }
 
     return EXIT_FAILURE; 
@@ -395,15 +431,15 @@ void playGame(structProgramInfo* p_structCommon)
 				p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX] =
 					' ';
 
-				/* Draw the block of the current user (the other blocks are draw by
-				   another function) */
+                /* Draw the block of the current user (the other blocks are draw by
+                    another function) */
 				drawElement(l_iCursorX + l_iOffsetX, l_iCursorY + l_iOffsetY,
 					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
 					p_structCommon->iCurrentUserColor);
 
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */
-                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
+                loopCompletion(l_iCursorX, l_iCursorY, l_iOffsetX, l_iOffsetY, p_structCommon);
 			}
 
 			default:

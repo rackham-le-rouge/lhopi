@@ -373,6 +373,9 @@ void playGame(structProgramInfo* p_structCommon)
 	l_iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	l_iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
+    /* Dirty */
+    p_structCommon->iOffsetX = l_iOffsetX;
+    p_structCommon->iOffsetY = l_iOffsetY;
 
 	p_structCommon->iCurrentUserColor = 1; /* FIXME multiplayer mode incoming */
 

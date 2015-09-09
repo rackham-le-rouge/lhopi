@@ -128,6 +128,7 @@ void initColor(void)
         init_pair(enumConsole, COLOR_BLACK, COLOR_WHITE);
         init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
         init_pair(enumLogLine, CONSOLE_LOGTEXT_COLOR, COLOR_BLACK);
+        init_pair(enumBoardLine, CONSOLE_BOARDLINE_COLOR, COLOR_BLACK);
 #else
         init_pair(enumNoir, COLOR_BLACK, COLOR_BLACK);
         init_pair(enumRouge, COLOR_RED, COLOR_BLACK);
@@ -140,6 +141,7 @@ void initColor(void)
         init_pair(enumConsole, COLOR_BLACK, CONSOLE_WHITE);
         init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
         init_pair(enumLogLine, CONSOLE_LOGTEXT_COLOR, COLOR_BLACK);
+        init_pair(enumBoardLine, CONSOLE_BOARDLINE_COLOR, COLOR_BLACK);
 #endif
 }
 
@@ -157,8 +159,34 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
 	/* Clean bars */
 	initBar();
 
+    start_color();                                  /* start color mode */
+    attron(COLOR_PAIR(enumBoardLine));
 
-	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
+    /* Upper Left */
+    mvaddch(p_structCommon->iOffsetY - 1, p_structCommon->iOffsetX - 1, ACS_ULCORNER );
+    for(l_iIterateur = 0; l_iIterateur < p_structCommon->iSizeX; l_iIterateur++)
+    {
+        /* Draw the horizontal lines */
+        mvaddch(p_structCommon->iOffsetY - 1, l_iIterateur + p_structCommon->iOffsetX, ACS_HLINE);
+        mvaddch(p_structCommon->iOffsetY + p_structCommon->iSizeY, l_iIterateur + p_structCommon->iOffsetX, ACS_HLINE);
+    }
+    /* Upper right */
+    mvaddch(p_structCommon->iOffsetY - 1, p_structCommon->iOffsetX + p_structCommon->iSizeX , ACS_URCORNER );
+
+    for(l_iIterateur = 0; l_iIterateur < p_structCommon->iSizeY; l_iIterateur++)
+    {
+        /* Draw the vertical lines */
+        mvaddch(p_structCommon->iOffsetY + l_iIterateur, p_structCommon->iOffsetX - 1, ACS_VLINE);
+        mvaddch(p_structCommon->iOffsetY + l_iIterateur, p_structCommon->iOffsetX + p_structCommon->iSizeX, ACS_VLINE);
+    }
+    mvaddch(p_structCommon->iOffsetY + p_structCommon->iSizeY, p_structCommon->iOffsetX - 1, ACS_LLCORNER );
+    mvaddch(p_structCommon->iOffsetY + p_structCommon->iSizeY, p_structCommon->iOffsetX + p_structCommon->iSizeX, ACS_LRCORNER );
+ 
+    attroff(COLOR_PAIR(enumBoardLine));
+
+
+
+	for (l_iIterateur = 0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
 		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM + 1), '_' , enumLine);
 		/* We put -1 in order to take care of the scpace taken by this line */

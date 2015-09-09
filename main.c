@@ -166,6 +166,8 @@ int main(int argc, char** argv)
 	/* Init values */
 	l_structCommon->iRow = -1;
 	l_structCommon->iCol = -1;
+	l_structCommon->iOffsetX = -1;
+	l_structCommon->iOffsetY = -1;
 	l_structCommon->iSizeX = DEFAULT_GRID_LENGHT;
 	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
 	l_iTmp = 0;

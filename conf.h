@@ -51,7 +51,7 @@
                                             /* informations and, later, the communication box */
 #define LOG_DIMENTION                   ((CONSOLE_SPACE_ON_BOARD_BOTTOM - 1))   /* Want three lines in the bottom log display */
 #define DEFAULT_PLAYERS                 2   /* Default number of players per play */
-#define DEFAULT_GRID_LENGHT             19
+#define DEFAULT_GRID_LENGHT             39
 #define DEFAULT_GRID_HEIGHT             19
 #define COLOR_MATRIX                    0   /* The matrix 'layer'dedicated to store color */
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
@@ -92,6 +92,7 @@ typedef enum
 /* Colors of part of the screen */
 #define CONSOLE_LINE_COLOR              COLOR_MAGENTA
 #define CONSOLE_LOGTEXT_COLOR           COLOR_YELLOW
+#define CONSOLE_BOARDLINE_COLOR         COLOR_RED
 
 /* Directions */
 #define DIRECTION_UP                    0
@@ -113,7 +114,8 @@ typedef enum
     enumBlanc =     11,
     enumConsole =   12,
     enumLine =      13,
-    enumLogLine =   14
+    enumLogLine =   14,
+    enumBoardLine = 15
 }g_enumJeuxDeCouleursDispo;
 
 
@@ -153,6 +155,8 @@ typedef struct structProgramInfo_
     unsigned int  iRow;
     unsigned int  iSizeX;
     unsigned int  iSizeY;
+    unsigned int  iOffsetX;
+    unsigned int  iOffsetY;
     unsigned int  iCurrentUserNumber;
     unsigned int  iCurrentUserColor;
     char*** cGrid;

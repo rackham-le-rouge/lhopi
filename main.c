@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 	structProgramInfo* l_structCommon;
 
     /* Output of the log informations - put stdin for nothing -*/
-    g_FILEOutputLogStream = stdin;
+    g_FILEOutputLogStream = stderr;
 
 	/* Start the random machine */
 	srand(time(NULL));

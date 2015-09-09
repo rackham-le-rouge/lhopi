@@ -393,21 +393,22 @@ void playGame(structProgramInfo* p_structCommon)
 			case 'D':
 			{
 				/* LEFT */
-				l_iCursorX = (l_iCursorX < 1) ? 0 : l_iCursorX - 1;
+				l_iCursorX = (l_iCursorX < 1) ? p_structCommon->iSizeX - 1 : l_iCursorX - 1;
 				l_iMovement = DIRECTION_LEFT;
 				break;
 			}
 			case 'C':
 			{
 				/* RIGHT */
-				l_iCursorX = (l_iCursorX > p_structCommon->iSizeX - 2) ? p_structCommon->iSizeX - 1 : l_iCursorX + 1;
+				l_iCursorX = (l_iCursorX > p_structCommon->iSizeX - 2) ?
+                    0 : l_iCursorX + 1;
 				l_iMovement = DIRECTION_RIGHT;
 				break;
 			}
 			case 'A':
 			{
 				/* UP */
-				l_iCursorY = (l_iCursorY < 1) ? 0 : l_iCursorY - 1;
+				l_iCursorY = (l_iCursorY < 1) ? p_structCommon->iSizeY - 1 : l_iCursorY - 1;
 				l_iMovement = DIRECTION_UP;
 				break;
 			}
@@ -415,7 +416,7 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* DOWN */
 				l_iCursorY = (l_iCursorY > p_structCommon->iSizeY - 2) ?
-					p_structCommon->iSizeY - 1 : l_iCursorY + 1;
+                    0 : l_iCursorY + 1;
 				l_iMovement = DIRECTION_DOWN;
 				break;
 			}

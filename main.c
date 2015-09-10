@@ -189,6 +189,7 @@ int main(int argc, char** argv)
 	l_structCommon->iOffsetY = -1;
 	l_structCommon->iSizeX = DEFAULT_GRID_LENGHT;
 	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
+    l_structCommon->sUserCommand = NULL;
 	l_iTmp = 0;
 
 	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)

@@ -342,9 +342,53 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
 }
 
 
+/**
+  * @brief Function to get from the user the command he wants (network, join, messaging etc...
+  * @param p_structCommon : Struct with all program informations
+  */
+void userCommandGetter(structProgramInfo* p_structCommon)
+{
+    if(p_structCommon->sUserCommand != NULL)
+    {
+        log_err("Already a command here. free() needed %lx", (long unsigned int)p_structCommon->sUserCommand);
+    }
+    p_structCommon->sUserCommand = (char*)malloc((USER_COMMAND_LENGHT + 1) * sizeof(char));
+
+    /* ncurses options to display input & display the cursor */
+    echo();
+    curs_set(1);
+
+    drawElement(0, p_structCommon->iRow - 2, ':', enumLogLine);
+    drawElement(1, p_structCommon->iRow - 2, '>', enumLogLine);
+    mvscanw(p_structCommon->iRow - 2, 3,"%s", p_structCommon->sUserCommand);
+
+    /* ncurses options to undo modifications */
+    curs_set(0);
+    noecho();
+}
+
+/**
+  * @brief Function to execute the command wanted by the user (and setted by the line prompt inside the program)
+  * @param p_structCommon : Struct with all program informations
+  */
+void userCommandExecute(structProgramInfo* p_structCommon)
+{
+    /* extract the command from the command line */
+    char l_sFirstWord[64];          /* Sometimes we have to set limits to the fools */
+    unsigned int l_iIterator;
+
+    l_iIterator = 0;
+
+    while(p_structCommon->sUserCommand[l_iIterator] <= 'z' && p_structCommon->sUserCommand[l_iIterator] >='a')
+    {
+        l_sFirstWord[l_iIterator] = p_structCommon->sUserCommand[l_iIterator];
+        l_iIterator++;
+    }
+    l_sFirstWord[l_iIterator] = '\0';
 
 
 
+}
 
 
 /** @brief	The game loop function
@@ -411,6 +455,23 @@ void playGame(structProgramInfo* p_structCommon)
 				l_iMovement = DIRECTION_DOWN;
 				break;
 			}
+            case ':':
+            {
+                /* Command mode */
+                logBar(p_structCommon, CLEAN_L2, "");
+                logBar(p_structCommon, DISPLAY, "");
+
+                /* Get command from the user, the command set by the user will be saved in p_structCommon->sUserCommand */
+                userCommandGetter(p_structCommon);
+                /* Analyse user command */
+                userCommandExecute(p_structCommon);
+                free(p_structCommon->sUserCommand);
+                p_structCommon->sUserCommand = NULL;
+
+                /* Clean the screen */
+                logBar(p_structCommon, DISPLAY, "");
+                break;
+            }
 			case ' ':
 			{
 				/* When the user drop a rock */

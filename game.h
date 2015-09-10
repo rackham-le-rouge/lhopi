@@ -17,6 +17,8 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
 void cleanGridLayer(unsigned int p_iLayerOrig, int  p_iToReplace, unsigned int p_iLayerDest, int p_iFillingValue, structProgramInfo* p_structCommon);
 int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon);
 int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon);
+void userCommandGetter(structProgramInfo* p_structCommon);
+void userCommandExecute(structProgramInfo* p_structCommon);
 void playGame(structProgramInfo* p_structCommon);
 
 #endif

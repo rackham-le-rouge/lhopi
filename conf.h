@@ -56,6 +56,7 @@
 #define COLOR_MATRIX                    0   /* The matrix 'layer'dedicated to store color */
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
+#define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
@@ -159,8 +160,9 @@ typedef struct structProgramInfo_
     unsigned int  iOffsetY;
     unsigned int  iCurrentUserNumber;
     unsigned int  iCurrentUserColor;
+    char*   sUserCommand;
     char*** cGrid;
-    unsigned char padding[7];
+    unsigned char padding[6];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

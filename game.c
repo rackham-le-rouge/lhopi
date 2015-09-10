@@ -81,16 +81,12 @@ void gameInit(structProgramInfo* p_structCommon)
   * @param p_iLayerDest : to modify this layer
   * @param p_iFillingValue : value to put in the grid
   * @param p_iToReplace : kind of point to replace in the selected grid. POINT_ALL is the default behavior
-  * @param p_iOffsetX : offset from the border of the screen. needed to draw new elements
-  * @param p_iOffsetY : offset from the border of the screen. needed to draw new elements
   * @param p_structCommon : Struct with all program informations
   */
 void cleanGridLayer(unsigned int p_iLayerOrig,
                     int p_iToReplace,
                     unsigned int p_iLayerDest,
                     int p_iFillingValue,
-                    unsigned int p_iOffsetX,
-                    unsigned int p_iOffsetY,
                     structProgramInfo* p_structCommon)
 {
     unsigned int l_iX;
@@ -116,7 +112,7 @@ void cleanGridLayer(unsigned int p_iLayerOrig,
                 {
     				/* Draw the block of the current user (the other blocks are draw by
     				   another function) */
-                    drawElement(l_iX + p_iOffsetX, l_iY + p_iOffsetY,
+                    drawElement(l_iX + p_structCommon->iOffsetX, l_iY + p_structCommon->iOffsetY,
                         p_structCommon->cGrid[TEXT_MATRIX][l_iY][l_iX],
                         p_structCommon->iCurrentUserColor);
                 }
@@ -285,15 +281,13 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
   * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
   *          block needed to make the loop
   * @param p_iCursorY : Y position (the line number). Y axis, vertical axis
-  * @param p_iOffsetX : used by sub function to draw the new points, that's the distance from the border of the screen
-  * @param p_iOffsetY : used by sub function to draw the new points, that's the distance from the border of the screen
   * @param p_structCommon : Struct with all program informations
   * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
-int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, structProgramInfo* p_structCommon)
+int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
 {
     /* Clean the -computation- grid */
-    cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
+    cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
 
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
@@ -324,15 +318,15 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned in
                 /* found */
                 logBar(p_structCommon, ADD_LINE, "Area to fill found");
                 logBar(p_structCommon, DISPLAY, "");
-                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_iOffsetX, p_iOffsetY, p_structCommon);
-                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_iOffsetX, p_iOffsetY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
             }
             else
             {
             }
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_iOffsetX, p_iOffsetY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
         }
     }
 
@@ -361,8 +355,6 @@ void playGame(structProgramInfo* p_structCommon)
 	unsigned char l_cKey;
 	unsigned int l_iCursorX;
 	unsigned int l_iCursorY;
-	unsigned int l_iOffsetX;
-	unsigned int l_iOffsetY;
 	unsigned int l_iMovement;	/* store the wanted move, if impossible this variable
 					  allow the program to go back */
 
@@ -370,12 +362,8 @@ void playGame(structProgramInfo* p_structCommon)
 	l_iMovement = 0;
 	l_iCursorX = 1;
 	l_iCursorY = 1;
-	l_iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
-	l_iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
-
-    /* Dirty */
-    p_structCommon->iOffsetX = l_iOffsetX;
-    p_structCommon->iOffsetY = l_iOffsetY;
+	p_structCommon->iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
+	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
 	p_structCommon->iCurrentUserColor = 1; /* FIXME multiplayer mode incoming */
 
@@ -385,7 +373,7 @@ void playGame(structProgramInfo* p_structCommon)
 	do
 	{
 		/* Display wursor each time */
-		displayCursor(l_iCursorX, l_iCursorY, l_iOffsetX, l_iOffsetY, p_structCommon->cGrid);
+		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, p_structCommon->cGrid);
 		refresh();
 
 		l_cKey = getch();
@@ -437,13 +425,13 @@ void playGame(structProgramInfo* p_structCommon)
 
                 /* Draw the block of the current user (the other blocks are draw by
                     another function) */
-				drawElement(l_iCursorX + l_iOffsetX, l_iCursorY + l_iOffsetY,
+				drawElement(l_iCursorX + p_structCommon->iOffsetX, l_iCursorY + p_structCommon->iOffsetY,
 					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
 					p_structCommon->iCurrentUserColor);
 
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */
-                loopCompletion(l_iCursorX, l_iCursorY, l_iOffsetX, l_iOffsetY, p_structCommon);
+                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
 			}
 
 			default:

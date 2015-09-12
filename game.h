@@ -19,6 +19,8 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon);
 void userCommandGetter(structProgramInfo* p_structCommon);
 void userCommandExecute(structProgramInfo* p_structCommon);
+int isTheGridFull(structProgramInfo* p_structCommon);
+void endOfTheGame(structProgramInfo* p_structCommon);
 void playGame(structProgramInfo* p_structCommon);
 
 #endif

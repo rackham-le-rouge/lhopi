@@ -386,7 +386,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     l_sFirstWord[l_iIterator] = '\0';
 
-
+    UNUSED(l_sFirstWord);
 
 }
 
@@ -397,6 +397,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 void playGame(structProgramInfo* p_structCommon)
 {
 	unsigned char l_cKey;
+    unsigned int l_iWatchdog;
 	unsigned int l_iCursorX;
 	unsigned int l_iCursorY;
 	unsigned int l_iMovement;	/* store the wanted move, if impossible this variable
@@ -535,11 +536,22 @@ void playGame(structProgramInfo* p_structCommon)
 			}
 
 			/* If with bad luck you go over the grid */
+            l_iWatchdog = 0;
 			while((unsigned int)p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] != enumNoir)
 			{
 				/* Find random coordinate with the simplest way */
 				l_iCursorX = rand() % p_structCommon->iSizeX;
 				l_iCursorY = rand() % p_structCommon->iSizeY;
+
+                l_iWatchdog++;
+                if(l_iWatchdog > (p_structCommon->iSizeX * p_structCommon->iSizeY) / 2)
+                {
+                    if(isTheGridFull(p_structCommon) == TRUE)
+                    {
+                        endOfTheGame(p_structCommon);
+                        return;
+                    }
+                }
 			}
 		}
 
@@ -548,3 +560,38 @@ void playGame(structProgramInfo* p_structCommon)
 
 
 }
+
+
+/**
+  * Function to know if the grid is full, avoid program blocking and know the end of the game
+  * @param p_structCommon : informations of the program
+  * @return TRUE if the grid is full FALSE on the other cases
+  */
+int isTheGridFull(structProgramInfo* p_structCommon)
+{
+    unsigned int l_iX;
+    unsigned int l_iY;
+
+    for(l_iY = 0; l_iY < p_structCommon->iSizeY ; l_iY++)
+    {
+        for(l_iX = 0; l_iX < p_structCommon->iSizeX ; l_iX++)
+        {
+            if(p_structCommon->cGrid[COLOR_MATRIX][l_iY][l_iX] == enumNoir)
+            {
+                return FALSE;
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+/**
+  * Function to close the game
+  * @param p_structCommon : informations of the program
+  */
+void endOfTheGame(structProgramInfo* p_structCommon)
+{
+    UNUSED(p_structCommon);
+}
+

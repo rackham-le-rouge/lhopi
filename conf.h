@@ -22,10 +22,14 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
+#include <strings.h>
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
 
 
 /*   Avaiable colors    *
@@ -101,6 +105,8 @@ typedef enum
 #define DIRECTION_LEFT                  2
 #define DIRECTION_RIGHT                 3
 
+#define h_addr h_addr_list[0]           /* for backward compatibility */
+
 
 typedef enum
 {
@@ -173,6 +179,7 @@ typedef struct structProgramInfo_
 #include "debug.h"
 #include "game.h"
 #include "drawing.h"
+#include "networking.h"
 #include "main.h"
 
 

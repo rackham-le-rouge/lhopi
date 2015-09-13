@@ -34,7 +34,7 @@ EXEC=lhopi
 
 all: $(EXEC)
 
-lhopi: drawing.o game.o main.o
+lhopi: networking.o drawing.o game.o main.o
 	@$(CC) -o $@ $^ $(LDFLAGS)
 	@echo [LD] $@
 

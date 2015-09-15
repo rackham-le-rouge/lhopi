@@ -30,7 +30,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
-
+#include <arpa/inet.h>
 
 /*   Avaiable colors    *
 
@@ -61,6 +61,7 @@
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
+#define TCP_PORT                        5555
 
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
@@ -167,8 +168,9 @@ typedef struct structProgramInfo_
     unsigned int  iCurrentUserNumber;
     unsigned int  iCurrentUserColor;
     char*   sUserCommand;
+    char*   sServerAddress;
     char*** cGrid;
-    unsigned char padding[6];
+    unsigned char padding[5];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

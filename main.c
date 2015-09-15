@@ -190,12 +190,19 @@ int main(int argc, char** argv)
 	l_structCommon->iSizeX = DEFAULT_GRID_LENGHT;
 	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
     l_structCommon->sUserCommand = NULL;
+    l_structCommon->sServerAddress = NULL;
 	l_iTmp = 0;
+
+    l_structCommon->sServerAddress = (char*)malloc(40 * sizeof(char));  /* max ipv6 lenght */
+    if(l_structCommon->sServerAddress == NULL)
+    {
+        exit(ENOMEM);
+    }
 
 	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)
 	{
 		/* Kill app before ncurse init, because user want to display the help message */
-		exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
 	}
 
     /*  Start the graphic mode */

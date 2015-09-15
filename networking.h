@@ -20,9 +20,8 @@
 
 */
 
-void error(const char *msg);
 int tcpSocketServer(structProgramInfo* p_structCommon);
-int tcpSocketClient(structProgramInfo* p_structCommon);
+int tcpSocketClient(structProgramInfo* p_structCommon, char p_bIPV4);
 
 
 

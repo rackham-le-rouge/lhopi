@@ -32,7 +32,7 @@ FILE* g_FILEOutputLogStream;
 /** @brief  Last function executed by the program, used to release the screen */
 void killTheApp(void)
 {
-	/* Show the cursor when the program going down */
+        /* Show the cursor when the program going down */
         curs_set(1);
 
         /*  Stop the program and leave the graphic mode ! Very important ! */
@@ -191,6 +191,8 @@ int main(int argc, char** argv)
 	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
     l_structCommon->sUserCommand = NULL;
     l_structCommon->sServerAddress = NULL;
+    l_structCommon->iServerSocket = 0;
+    l_structCommon->iClientsSockets = (int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(int));
 	l_iTmp = 0;
 
     l_structCommon->sServerAddress = (char*)malloc(40 * sizeof(char));  /* max ipv6 lenght */
@@ -204,6 +206,11 @@ int main(int argc, char** argv)
 		/* Kill app before ncurse init, because user want to display the help message */
 		exit(EXIT_FAILURE);
 	}
+
+    if(l_structCommon->iClientsSockets == NULL)
+    {
+        exit(ENOMEM);
+    }
 
     /*  Start the graphic mode */
     initscr();
@@ -255,6 +262,9 @@ int main(int argc, char** argv)
         free(l_structCommon->cGrid[l_iIteratorLayer]);
 	}
 
+    free(l_structCommon->iClientsSockets);
+    free(l_structCommon->sUserCommand);
+    free(l_structCommon->sServerAddress);
 	free(l_structCommon->cGrid);
 	free(l_cBuffer);
 	free(l_cBuffer2);

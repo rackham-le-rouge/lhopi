@@ -19,7 +19,6 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 {
     int l_iSocket;
     int l_iSocketNewConnection;
-    int l_iPortNumber;
     socklen_t l_structClientLen;
     char l_cBufferTransmittedData[256];
     struct sockaddr_in l_structServAddr;
@@ -28,11 +27,10 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData,256);
-    l_iPortNumber = 5555;
 
     l_structServAddr.sin_family = AF_INET;
     l_structServAddr.sin_addr.s_addr = INADDR_ANY;                                        
-    l_structServAddr.sin_port = htons(l_iPortNumber);
+    l_structServAddr.sin_port = htons(TCP_PORT);
 
     l_iSocket = socket(AF_INET, SOCK_STREAM, 0); 
 
@@ -86,18 +84,16 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 int tcpSocketClient(structProgramInfo* p_structCommon, char p_bIPV4)
 {
     int l_iSocketClient;
-    int l_iPortNumber;
     struct sockaddr_in l_structServAddr;
     struct hostent* l_structRemoteServer;
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
     struct in_addr l_structIpV4Addr;
     struct in6_addr l_structIpV6Addr;
 
-    l_iPortNumber = TCP_PORT;
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData,USER_COMMAND_LENGHT);
     l_structServAddr.sin_family = AF_INET;
-    l_structServAddr.sin_port = htons(l_iPortNumber);
+    l_structServAddr.sin_port = htons(TCP_PORT);
 
 
     l_iSocketClient = socket(AF_INET, SOCK_STREAM, 0);

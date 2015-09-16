@@ -62,7 +62,7 @@
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 #define TCP_PORT                        5555
-
+#define MAX_CONNECTED_CLIENTS           16  /* When  program is a server, max clients connected to him */
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */
@@ -167,6 +167,8 @@ typedef struct structProgramInfo_
     unsigned int  iOffsetY;
     unsigned int  iCurrentUserNumber;
     unsigned int  iCurrentUserColor;
+    int           iServerSocket;
+    int*          iClientsSockets;
     char*   sUserCommand;
     char*   sServerAddress;
     char*** cGrid;

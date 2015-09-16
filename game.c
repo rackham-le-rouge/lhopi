@@ -375,10 +375,16 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 {
     /* extract the command from the command line */
     char l_sFirstWord[64];          /* Sometimes we have to set limits to the fools */
+    char l_sParameter[40];          /* IPV6 mac lenght = 39 */
+    char l_sMessageToDisplay[USER_COMMAND_LENGHT]; 
     unsigned int l_iIterator;
+    int l_iReturned;
 
     l_iIterator = 0;
+    l_iReturned = 0;
+    bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
+    /* Command finding in the user provided string */
     while(p_structCommon->sUserCommand[l_iIterator] <= 'z' && p_structCommon->sUserCommand[l_iIterator] >='a')
     {
         l_sFirstWord[l_iIterator] = p_structCommon->sUserCommand[l_iIterator];
@@ -386,8 +392,31 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     l_sFirstWord[l_iIterator] = '\0';
 
-    UNUSED(l_sFirstWord);
 
+
+    /* Command execution */
+    if(!strncmp(l_sFirstWord, "bemaster", strlen("bemaster")))
+    {
+        strcpy(l_sMessageToDisplay, "Gonna be the game server");
+        l_iReturned = tcpSocketServer(p_structCommon);
+        if(l_iReturned != 0)
+        {
+            log_err("Init of server failed. Abort the order%s", " ");
+            strcpy(l_sMessageToDisplay, "Server mode failed to start...");
+        }
+    }
+    else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
+    {
+        UNUSED(l_sParameter);
+    }
+    else
+    {
+        /* Other command */
+        strcpy(l_sMessageToDisplay, "Unrecognized command");
+    }
+
+    logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
+    logBar(p_structCommon, DISPLAY, "");
 }
 
 

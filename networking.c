@@ -19,15 +19,17 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 {
     int l_iSocket;
     int l_iSocketNewConnection;
+    int l_iSocketCounter;
     socklen_t l_structClientLen;
     char l_cBufferTransmittedData[256];
     struct sockaddr_in l_structServAddr;
     struct sockaddr_in l_structClientAddr;
-    UNUSED(p_structCommon);
+    pthread_t l_structThreadID;
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData,256);
 
+    l_iSocketCounter = 0;
     l_structServAddr.sin_family = AF_INET;
     l_structServAddr.sin_addr.s_addr = INADDR_ANY;                                        
     l_structServAddr.sin_port = htons(TCP_PORT);
@@ -54,32 +56,63 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 
     l_structClientLen = sizeof(l_structClientAddr);
 
-    l_iSocketNewConnection = accept(l_iSocket, (struct sockaddr *) &l_structClientAddr, &l_structClientLen);
+    /* Add all clients */
+    while((l_iSocketNewConnection = accept(l_iSocket, (struct sockaddr *) &l_structClientAddr, &l_structClientLen)))
+    {
+        p_structCommon->iClientsSockets[l_iSocketCounter++] = l_iSocketNewConnection;
+        if(pthread_create( &l_structThreadID , NULL ,  tcpSocketServerConnectionHander , (void*) p_structCommon) < 0)
+        {
+            log_err("Could not create the thread %s", " ");
+            return errno;
+        }
+    }
 
+    /* If failed to accept a connection */
     if (l_iSocketNewConnection < 0)
     {
         log_err("Socket-server: Connection requested by peer, but failed to establish. Retrieved socket is empty. errno %d", errno);
         return errno;
     }
 
-    /* Have to be integrated in the right function */
- 
-    /*
-    l_iReturnedReadWriteValue = read(l_iSocketNewConnection, l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
-
-    l_iReturnedReadWriteValue = write(l_iSocketNewConnection,"I got your message",18);
-    */
-
-    /*
-    close(l_iSocketNewConnection);
     close(l_iSocket);
-    */
-
     return 0;
 }
 
 
 
+void* tcpSocketServerConnectionHander(void* p_structCommonShared)
+{
+    structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
+    char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
+    int l_iReturnedReadWriteValue;
+    int l_iCurrentSocketIndex;
+
+    l_iCurrentSocketIndex = 0;
+
+    while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] > 0)
+    {
+        l_iCurrentSocketIndex++;
+        if(l_iCurrentSocketIndex == MAX_CONNECTED_CLIENTS)
+        {
+            log_warn("Client asking queue is full %s", " ");
+            l_iCurrentSocketIndex--;
+            break;
+        }
+    }
+
+    l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
+
+    l_iReturnedReadWriteValue = write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], "Test", 4);
+
+    if(l_iReturnedReadWriteValue == 0)
+    {
+        log_err("Soket writing function failed %s", " ");
+    }
+
+    close(p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
+        
+    return 0;
+}
 
 int tcpSocketClient(structProgramInfo* p_structCommon, char p_bIPV4)
 {

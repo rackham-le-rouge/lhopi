@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <arpa/inet.h>
+#include <pthread.h>
 
 /*   Avaiable colors    *
 

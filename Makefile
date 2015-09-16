@@ -29,7 +29,7 @@ CFLAGS=		-W -Waggregate-return -Wall -Warray-bounds -Wbad-function-cast -Wcast-a
                  -Wunused-parameter -Wunused-value -Wunused-variable -Wvla -Wvolatile-register-var              \
                  -Wwrite-strings -fno-common -fstack-protector-all -pedantic -std=c99 -Wstrict-aliasing=3 $(DEBUG)
 
-LDFLAGS=-lncurses -ansi -O2 $(DEBUG)
+LDFLAGS=-lncurses -ansi -O2 -lpthread $(DEBUG)
 EXEC=lhopi
 
 all: $(EXEC)

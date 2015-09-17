@@ -407,7 +407,11 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
     {
+        /* FIXME */
         UNUSED(l_sParameter);
+        strcpy(p_structCommon->sServerAddress, "127.0.0.1");
+        p_structCommon->bIpV4 = TRUE;
+        tcpSocketClient(p_structCommon);
     }
     else
     {

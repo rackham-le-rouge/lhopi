@@ -21,9 +21,10 @@
 */
 
 int tcpSocketServer(structProgramInfo* p_structCommon);
-int tcpSocketClient(structProgramInfo* p_structCommon, char p_bIPV4);
+int tcpSocketClient(structProgramInfo* p_structCommon);
 void* tcpSocketServerConnectionHander(void* p_structCommonShared);
 void* waitingForNewConnectionsThread(void* p_structCommonShared);
+void* clientConnectionThread(void* p_structCommonShared);
 
 
 

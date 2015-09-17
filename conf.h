@@ -170,6 +170,7 @@ typedef struct structProgramInfo_
     unsigned int  iCurrentUserColor;
     int           iServerSocket;
     int*          iClientsSockets;
+    char    bIpV4;
     char*   sUserCommand;
     char*   sServerAddress;
     char*** cGrid;

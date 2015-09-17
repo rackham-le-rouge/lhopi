@@ -17,6 +17,22 @@ extern FILE* g_FILEOutputLogStream;
 
 int tcpSocketServer(structProgramInfo* p_structCommon)
 {
+    pthread_t l_structWaitingThreadID;
+
+    if(pthread_create( &l_structWaitingThreadID, NULL, waitingForNewConnectionsThread, (void*) p_structCommon) < 0)
+    {
+        log_err("Could not create the WaitingForNewConnectionsThread %s", " ");
+        return errno;
+    }
+
+    return 0;
+}
+
+
+void* waitingForNewConnectionsThread(void* p_structCommonShared)
+{
+    structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
+
     int l_iSocket;
     int l_iSocketNewConnection;
     int l_iSocketCounter;
@@ -39,31 +55,38 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
     if (l_iSocket < 0)
     { 
         log_err("Socket-server: error opening socket. err %d", errno);
-        return errno;
+        return 0;
     }
 
     if (bind(l_iSocket, (struct sockaddr *) &l_structServAddr, sizeof(l_structServAddr)) < 0)
     {
         log_err("Socket-server: error binding port. errno %d", errno);
-        return errno;
+        return 0;
     }
 
-    if(listen(l_iSocket,5) < 0)
+    if(listen(l_iSocket, 5) < 0)
     {
         log_err("Socket-server: listen failed. errno %d", errno);
-        return errno;
+        return 0;
     }
 
     l_structClientLen = sizeof(l_structClientAddr);
 
+    logBar(p_structCommon, ADD_LINE, "Waiting for incomming connections !");
+    logBar(p_structCommon, DISPLAY, "");
+
+
     /* Add all clients */
     while((l_iSocketNewConnection = accept(l_iSocket, (struct sockaddr *) &l_structClientAddr, &l_structClientLen)))
     {
+        logBar(p_structCommon, ADD_LINE, "Someone wants to join");
+        logBar(p_structCommon, DISPLAY, "");
+
         p_structCommon->iClientsSockets[l_iSocketCounter++] = l_iSocketNewConnection;
         if(pthread_create( &l_structThreadID , NULL ,  tcpSocketServerConnectionHander , (void*) p_structCommon) < 0)
         {
             log_err("Could not create the thread %s", " ");
-            return errno;
+            return 0;
         }
     }
 
@@ -71,13 +94,12 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
     if (l_iSocketNewConnection < 0)
     {
         log_err("Socket-server: Connection requested by peer, but failed to establish. Retrieved socket is empty. errno %d", errno);
-        return errno;
+        return 0;
     }
 
     close(l_iSocket);
     return 0;
 }
-
 
 
 void* tcpSocketServerConnectionHander(void* p_structCommonShared)
@@ -99,6 +121,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             break;
         }
     }
+
+    logBar(p_structCommon, ADD_LINE, "New user joined");
+    logBar(p_structCommon, DISPLAY, "");
+
 
     l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
 

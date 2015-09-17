@@ -23,6 +23,7 @@
 int tcpSocketServer(structProgramInfo* p_structCommon);
 int tcpSocketClient(structProgramInfo* p_structCommon, char p_bIPV4);
 void* tcpSocketServerConnectionHander(void* p_structCommonShared);
+void* waitingForNewConnectionsThread(void* p_structCommonShared);
 
 
 

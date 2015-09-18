@@ -161,6 +161,7 @@ typedef enum
   */
 typedef struct structProgramInfo_
 {
+    pthread_mutex_t*    pthreadMutex;
     unsigned int  iCol;
     unsigned int  iRow;
     unsigned int  iSizeX;
@@ -172,6 +173,7 @@ typedef struct structProgramInfo_
     int           iServerSocket;
     int*          iClientsSockets;
     char    bIpV4;
+    char    bMutexInitialized;
     char*   sUserCommand;
     char*   sServerAddress;
     char*** cGrid;

@@ -17,6 +17,27 @@ extern FILE* g_FILEOutputLogStream;
 
 
 
+
+/*******************************************
+ *
+ *           Thread Safe log part
+ *   Because access to the graphic methods
+ *   needs to be thread safe. Add mutexes.
+ *
+ *******************************************/
+
+void threadSafeLogBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine)
+{
+    pthread_mutex_lock(p_structCommon->pthreadMutex);
+
+    logBar(p_structCommon, p_enumBarWantedAction, p_sNewLine);
+    logBar(p_structCommon, DISPLAY, "");
+
+    pthread_mutex_unlock(p_structCommon->pthreadMutex);
+}
+
+
+
 /*******************************************
  *
  *             Server part
@@ -34,6 +55,9 @@ extern FILE* g_FILEOutputLogStream;
 int tcpSocketServer(structProgramInfo* p_structCommon)
 {
     pthread_t l_structWaitingThreadID;
+
+    pthread_mutex_init(p_structCommon->pthreadMutex, NULL);
+    p_structCommon->bMutexInitialized = TRUE;
 
     if(pthread_create(&l_structWaitingThreadID,NULL, waitingForNewConnectionsThread, (void*)p_structCommon) < 0)
     {
@@ -226,6 +250,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 int tcpSocketClient(structProgramInfo* p_structCommon)
 {
     pthread_t l_structWaitingThreadID;
+
+    pthread_mutex_init(p_structCommon->pthreadMutex, NULL);
+    p_structCommon->bMutexInitialized = TRUE;
 
     if(pthread_create(&l_structWaitingThreadID,NULL, clientConnectionThread, (void*)p_structCommon) < 0)
     {

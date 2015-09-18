@@ -193,8 +193,16 @@ int main(int argc, char** argv)
     l_structCommon->sUserCommand = NULL;
     l_structCommon->sServerAddress = NULL;
     l_structCommon->iServerSocket = 0;
+    l_structCommon->pthreadMutex = NULL;
+    l_structCommon->bMutexInitialized = FALSE;
     l_structCommon->iClientsSockets = (int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(int));
 	l_iTmp = 0;
+
+    l_structCommon->pthreadMutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+    if(l_structCommon->pthreadMutex == NULL)
+    {
+        exit(ENOMEM);
+    }
 
     l_structCommon->sServerAddress = (char*)malloc(40 * sizeof(char));  /* max ipv6 lenght */
     if(l_structCommon->sServerAddress == NULL)
@@ -263,6 +271,11 @@ int main(int argc, char** argv)
         free(l_structCommon->cGrid[l_iIteratorLayer]);
 	}
 
+    if(l_structCommon->bMutexInitialized == TRUE)
+    {
+        pthread_mutex_destroy(l_structCommon->pthreadMutex);
+    }
+    free(l_structCommon->pthreadMutex);
     free(l_structCommon->iClientsSockets);
     free(l_structCommon->sUserCommand);
     free(l_structCommon->sServerAddress);

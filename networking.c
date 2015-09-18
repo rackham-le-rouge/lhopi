@@ -15,6 +15,22 @@
 extern FILE* g_FILEOutputLogStream;
 
 
+
+
+/*******************************************
+ *
+ *             Server part
+ *   Accept Client connections in separated
+ *   threads.  And manage all incoming con-
+ *   nections in a saparated thread.
+ *
+ *******************************************/
+
+
+
+/** @brief PUBLIC INTERFACE
+  *
+  */
 int tcpSocketServer(structProgramInfo* p_structCommon)
 {
     pthread_t l_structWaitingThreadID;
@@ -81,9 +97,6 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     /* Add all clients */
     while((l_iSocketNewConnection = accept(l_iSocket, (struct sockaddr *) &l_structClientAddr, &l_structClientLen)))
     {
-        logBar(p_structCommon, ADD_LINE, "Someone wants to join");
-        logBar(p_structCommon, DISPLAY, "");
-
         p_structCommon->iClientsSockets[l_iSocketCounter++] = l_iSocketNewConnection;
         if(pthread_create( &l_structThreadID , NULL ,  tcpSocketServerConnectionHander , (void*) p_structCommon) < 0)
         {
@@ -122,9 +135,11 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
 
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
+    char l_bExit;
     int l_iReturnedReadWriteValue;
     int l_iCurrentSocketIndex;
 
+    l_bExit = FALSE;
     l_iCurrentSocketIndex = 0;
     UNUSED(l_cBufferTransmittedData);
 
@@ -145,21 +160,58 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     logBar(p_structCommon, ADD_LINE, "New user joined");
     logBar(p_structCommon, DISPLAY, "");
 
+    /*
     l_iReturnedReadWriteValue = write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], "Test", 4);
-
-    //l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
-
-
     if(l_iReturnedReadWriteValue == 0)
     {
         log_err("Soket writing function failed %s", " ");
     }
+    */
+
+    while(l_bExit != TRUE)
+    {
+        l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
+
+        if(l_iReturnedReadWriteValue > 0)
+        {
+            if(strcmp(l_cBufferTransmittedData, "cli_srv close_con") == 0)
+            {
+                log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
+                l_bExit = TRUE;
+            }
+            else
+            {
+                log_info("Received message from client %s", l_cBufferTransmittedData);
+            }
+        }
+
+        sleep(1);
+    }
 
     close(p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
-        
+    p_structCommon->iClientsSockets[l_iCurrentSocketIndex] = 0;
     return 0;
 }
 
+
+
+
+
+
+
+
+/*******************************************
+ *
+ *             Client part
+ *   Connect to the server with one thread
+ *
+ *******************************************/
+
+
+
+/** @brief PUBLIC INTERFACE
+  *
+  */
 int tcpSocketClient(structProgramInfo* p_structCommon)
 {
     pthread_t l_structWaitingThreadID;
@@ -233,17 +285,27 @@ void* clientConnectionThread(void* p_structCommonShared)
     l_iReturnedReadWriteValue = write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
     l_iReturnedReadWriteValue = read(l_iSocketClient,l_cBufferTransmittedData,255);
     */
+debug("ee");
+log_info("len sUserCommand, %d,", (int)strlen(p_structCommon->sUserCommand));
+debug("ee");
+log_info("ln l_cBufferTransmittedData, %d", (int)strlen(l_cBufferTransmittedData));
+debug("ee");
+    strncpy(l_cBufferTransmittedData, p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
+debug("ee");
+    l_iReturnedReadWriteValue = write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
+debug("ee");
 
-    l_iReturnedReadWriteValue = read(l_iSocketClient, l_cBufferTransmittedData, 255);
-
-    if(l_iReturnedReadWriteValue == 0)
+    if(l_iReturnedReadWriteValue == 0 )
     {
         log_err("Soket-client reading function failed %s", " ");
     }
+debug("ee");
 
-    log_err("Socket-client: reveived value %s", l_cBufferTransmittedData);
+    strncpy(l_cBufferTransmittedData, "cli_srv close_con", strlen("cli_srv close_con"));
+debug("ee");
+    write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
+debug("ee");
 
     close(l_iSocketClient);
-
     return 0;
 }

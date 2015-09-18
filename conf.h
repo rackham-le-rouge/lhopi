@@ -17,7 +17,7 @@
  * @author      Jerome GRARD
  */
 
-
+#define _BSD_SOURCE                     /* Add that to have usleep in unistd.h*/
 #include <string.h>
 #include <stdlib.h>
 #include <ncurses.h>
@@ -64,6 +64,7 @@
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 #define TCP_PORT                        5555
 #define MAX_CONNECTED_CLIENTS           16  /* When  program is a server, max clients connected to him */
+#define TIME_BETWEEN_TWO_REQUEST        200
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */

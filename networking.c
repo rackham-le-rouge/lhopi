@@ -140,22 +140,17 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     int l_iCurrentSocketIndex;
 
     l_bExit = FALSE;
-    l_iCurrentSocketIndex = 0;
-    UNUSED(l_cBufferTransmittedData);
+    l_iCurrentSocketIndex = MAX_CONNECTED_CLIENTS - 1;
 
-    while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] > 0)
+    while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] == 0)
     {
-        l_iCurrentSocketIndex++;
-        if(l_iCurrentSocketIndex >= MAX_CONNECTED_CLIENTS)
+        l_iCurrentSocketIndex--;
+        if(l_iCurrentSocketIndex < 0)
         {
-            log_warn("Client asking queue is full %s", " ");
-            l_iCurrentSocketIndex--;
-            break;
+            log_warn("Client asking queue is empty %s", " ");
+            return 0;
         }
     }
-    /* We have to substract one because now l_iCurrentSocketIndex shows the first empty socket */
-    l_iCurrentSocketIndex--;
-
 
     logBar(p_structCommon, ADD_LINE, "New user joined");
     logBar(p_structCommon, DISPLAY, "");
@@ -174,22 +169,23 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
         if(l_iReturnedReadWriteValue > 0)
         {
-            if(strcmp(l_cBufferTransmittedData, "cli_srv close_con") == 0)
+            if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
             {
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bExit = TRUE;
             }
             else
             {
-                log_info("Received message from client %s", l_cBufferTransmittedData);
+                log_info("Received message from client [%s]", l_cBufferTransmittedData);
             }
+            bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }
 
-        sleep(1);
+        usleep(TIME_BETWEEN_TWO_REQUEST);
     }
 
     close(p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
-    p_structCommon->iClientsSockets[l_iCurrentSocketIndex] = 0;
+    p_structCommon->iClientsSockets[l_iCurrentSocketIndex] = -1;
     return 0;
 }
 
@@ -252,7 +248,6 @@ void* clientConnectionThread(void* p_structCommonShared)
         return 0;
     }
 
-    /* l_structRemoteServer = gethostbyname(p_structCommon->sServerAddress); // no ipv6 */
     /* have to be replaced by getaddrinfo FIXME */
     if(p_structCommon->bIpV4 == TRUE)
     {
@@ -269,6 +264,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     if (l_structRemoteServer == NULL)
     {
         log_err("Socket-client: Host doen't exist. errno %d", errno);
+        close(l_iSocketClient);
         return 0;
     }
 
@@ -276,6 +272,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     if (connect(l_iSocketClient,(struct sockaddr *) &l_structServAddr,sizeof(l_structServAddr)) < 0)
     {
         log_err("Socket-client: connection to the server failed. errno %d", errno);
+        close(l_iSocketClient);
         return 0;
     }
 
@@ -285,26 +282,20 @@ void* clientConnectionThread(void* p_structCommonShared)
     l_iReturnedReadWriteValue = write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
     l_iReturnedReadWriteValue = read(l_iSocketClient,l_cBufferTransmittedData,255);
     */
-debug("ee");
-log_info("len sUserCommand, %d,", (int)strlen(p_structCommon->sUserCommand));
-debug("ee");
-log_info("ln l_cBufferTransmittedData, %d", (int)strlen(l_cBufferTransmittedData));
-debug("ee");
     strncpy(l_cBufferTransmittedData, p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
-debug("ee");
     l_iReturnedReadWriteValue = write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
-debug("ee");
 
     if(l_iReturnedReadWriteValue == 0 )
     {
         log_err("Soket-client reading function failed %s", " ");
+        close(l_iSocketClient);
+        return 0;
     }
-debug("ee");
+
+    usleep(TIME_BETWEEN_TWO_REQUEST + 10);
 
     strncpy(l_cBufferTransmittedData, "cli_srv close_con", strlen("cli_srv close_con"));
-debug("ee");
     write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
-debug("ee");
 
     close(l_iSocketClient);
     return 0;

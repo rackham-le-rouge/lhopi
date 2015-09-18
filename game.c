@@ -350,9 +350,15 @@ void userCommandGetter(structProgramInfo* p_structCommon)
 {
     if(p_structCommon->sUserCommand != NULL)
     {
-        log_err("Already a command here. free() needed %lx", (long unsigned int)p_structCommon->sUserCommand);
+        free(p_structCommon->sUserCommand);
+        p_structCommon->sUserCommand = NULL;
     }
     p_structCommon->sUserCommand = (char*)malloc((USER_COMMAND_LENGHT + 1) * sizeof(char));
+    if(p_structCommon->sUserCommand == NULL)
+    {
+        log_err("No more memory available... End%s", " ");
+        exit(ENOMEM);
+    }
 
     /* ncurses options to display input & display the cursor */
     echo();
@@ -499,8 +505,6 @@ void playGame(structProgramInfo* p_structCommon)
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
-                free(p_structCommon->sUserCommand);
-                p_structCommon->sUserCommand = NULL;
 
                 /* Clean the screen */
                 logBar(p_structCommon, DISPLAY, "");

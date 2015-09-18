@@ -77,13 +77,13 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     int l_iSocketNewConnection;
     int l_iSocketCounter;
     socklen_t l_structClientLen;
-    char l_cBufferTransmittedData[256];
+    char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
     struct sockaddr_in l_structServAddr;
     struct sockaddr_in l_structClientAddr;
     pthread_t l_structThreadID;
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
-    bzero(l_cBufferTransmittedData,256);
+    bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
 
     l_iSocketCounter = 0;
     l_structServAddr.sin_family = AF_INET;
@@ -170,6 +170,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
 
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
+    char l_cBufferoToSendData[USER_COMMAND_LENGHT];
     char l_bExit;
     int l_iReturnedReadWriteValue;
     int l_iCurrentSocketIndex;
@@ -193,18 +194,16 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     logBar(p_structCommon, ADD_LINE, "New user joined");
     logBar(p_structCommon, DISPLAY, "");
 
-    /*
-    l_iReturnedReadWriteValue = write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], "Test", 4);
-    if(l_iReturnedReadWriteValue == 0)
-    {
-        log_err("Soket writing function failed %s", " ");
-    }
-    */
-
     while(l_bExit != TRUE)
     {
         l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
 
+
+        /************************
+         *
+         * Reception from client
+         *
+         ************************/
         if(l_iReturnedReadWriteValue > 0)
         {
             if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
@@ -219,6 +218,38 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }
 
+
+
+        /************************
+         *
+         *     Exit asked
+         *
+         ************************/
+        if(p_structCommon->bNetworkDisconnectionRequiered == TRUE)
+        {
+            strncpy(l_cBufferoToSendData, "cli_srv close_con", strlen("cli_srv close_con"));
+            l_bExit = TRUE;
+        }
+
+         /************************
+         *
+         *      Sending part
+         *
+         ************************/
+        if(strlen(l_cBufferoToSendData) > 0)
+        {
+            l_iReturnedReadWriteValue = write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex],
+                                              l_cBufferoToSendData, strlen(l_cBufferoToSendData));
+
+            if(l_iReturnedReadWriteValue <= 0)
+            {
+                log_msg("Socket-server: Terminal thread closed on writing error");
+                l_bExit = TRUE;
+            }
+            bzero(l_cBufferoToSendData, USER_COMMAND_LENGHT);
+        }
+
+        write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], "ping", strlen("ping"));
         usleep(TIME_BETWEEN_TWO_REQUEST);
     }
 
@@ -274,6 +305,8 @@ void* clientConnectionThread(void* p_structCommonShared)
     struct sockaddr_in l_structServAddr;
     struct hostent* l_structRemoteServer;
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
+    char l_cBufferToSendData[USER_COMMAND_LENGHT];
+    char l_bQuit;
     struct in_addr l_structIpV4Addr;
     struct in6_addr l_structIpV6Addr;
 
@@ -282,6 +315,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     l_structServAddr.sin_family = AF_INET;
     l_structServAddr.sin_port = htons(TCP_PORT);
     l_iReturnedReadWriteValue = 0;
+    l_bQuit = FALSE;
 
     log_msg("Socket-client: Communication thread started");
 
@@ -323,29 +357,71 @@ void* clientConnectionThread(void* p_structCommonShared)
         return 0;
     }
 
-    /* Have to be integrated in the right function */
 
-    /*
-    l_iReturnedReadWriteValue = write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
-    l_iReturnedReadWriteValue = read(l_iSocketClient,l_cBufferTransmittedData,255);
-    */
-    strncpy(l_cBufferTransmittedData, p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
-    l_iReturnedReadWriteValue = write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
-
-    if(l_iReturnedReadWriteValue == 0 )
+    while(l_bQuit != TRUE)
     {
-        log_err("Soket-client reading function failed %s", " ");
-        log_msg("Socket-client: Communication thread closed on error");
-        close(l_iSocketClient);
-        return 0;
+         /************************
+         *
+         *     Receiving part
+         *
+         ************************/
+        l_iReturnedReadWriteValue = read(l_iSocketClient, l_cBufferTransmittedData, USER_COMMAND_LENGHT);
+        if(l_iReturnedReadWriteValue > 0)
+        {
+            if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
+            {
+                log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
+                l_bQuit = TRUE;
+            }
+            else
+            {
+                log_info("Received message from server [%s]", l_cBufferTransmittedData);
+            }
+            bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
+        }
+
+         /************************
+         *
+         *       Exit part
+         *
+         ************************/
+        if(p_structCommon->bNetworkDisconnectionRequiered == TRUE)
+        {
+            log_msg("Socket-client: Program ask to close connection");
+            strncpy(l_cBufferToSendData, "cli_srv close_con", strlen("cli_srv close_con"));
+            write(l_iSocketClient,l_cBufferToSendData,strlen(l_cBufferToSendData));
+            l_bQuit = TRUE;
+        }
+         /************************
+         *
+         *      Sending part
+         *
+         ************************/
+        else if(strlen(p_structCommon->sUserCommand) > 0)
+        {
+            strncpy(l_cBufferToSendData, p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
+            l_iReturnedReadWriteValue = write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
+
+            if(l_iReturnedReadWriteValue == 0 )
+            {
+                log_err("Soket-client reading function failed %s", " ");
+                log_msg("Socket-client: Communication thread closed on error");
+                close(l_iSocketClient);
+                return 0;
+            }
+
+            /* Clean the request to avoid loop-sending */
+            bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
+        }
+
+        usleep(TIME_BETWEEN_TWO_REQUEST + 10);
+        write(l_iSocketClient, "ping", strlen("ping"));
     }
-
-    usleep(TIME_BETWEEN_TWO_REQUEST + 10);
-
-    strncpy(l_cBufferTransmittedData, "cli_srv close_con", strlen("cli_srv close_con"));
-    write(l_iSocketClient,l_cBufferTransmittedData,strlen(l_cBufferTransmittedData));
 
     log_msg("Socket-client: Communication thread closed normally");
     close(l_iSocketClient);
+
+    /* Down the flag to say to game.c that this is OK, socket is closed */
+    p_structCommon->bNetworkDisconnectionRequiered = FALSE;
     return 0;
 }

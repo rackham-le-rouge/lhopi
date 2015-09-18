@@ -195,6 +195,7 @@ int main(int argc, char** argv)
     l_structCommon->iServerSocket = 0;
     l_structCommon->pthreadMutex = NULL;
     l_structCommon->bMutexInitialized = FALSE;
+    l_structCommon->bNetworkDisconnectionRequiered = FALSE;
     l_structCommon->iClientsSockets = (int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(int));
 	l_iTmp = 0;
 

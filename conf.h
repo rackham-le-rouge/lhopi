@@ -174,10 +174,11 @@ typedef struct structProgramInfo_
     int*          iClientsSockets;
     char    bIpV4;
     char    bMutexInitialized;
+    char    bNetworkDisconnectionRequiered;
     char*   sUserCommand;
     char*   sServerAddress;
     char*** cGrid;
-    unsigned char padding[5];
+    unsigned char padding[3];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

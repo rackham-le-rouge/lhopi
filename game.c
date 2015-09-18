@@ -510,6 +510,19 @@ void playGame(structProgramInfo* p_structCommon)
                 logBar(p_structCommon, DISPLAY, "");
                 break;
             }
+            case 'q':
+            case 'Q':
+            {
+                p_structCommon->bNetworkDisconnectionRequiered = TRUE;
+
+                /* Started threads have to down this flag -- bMutexInitialized means we have at least one thread started */
+                while(p_structCommon->bNetworkDisconnectionRequiered == TRUE &&
+                      p_structCommon->bMutexInitialized == TRUE)
+                {
+                    usleep(TIME_BETWEEN_TWO_REQUEST + 10);
+                }   
+                break;
+            }
 			case ' ':
 			{
 				/* When the user drop a rock */

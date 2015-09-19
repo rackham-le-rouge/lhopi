@@ -196,8 +196,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
     while(l_bExit != TRUE)
     {
+debug("bb");
         l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
-
+debug("aa");
 
         /************************
          *
@@ -206,14 +207,34 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
          ************************/
         if(l_iReturnedReadWriteValue > 0)
         {
+            log_msg("srv rcp smth");
             if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
             {
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bExit = TRUE;
             }
+            else if(strstr(l_cBufferTransmittedData, "ping") != NULL)
+            {
+                log_msg("srv pong");
+                strncpy(l_cBufferoToSendData, "pong", strlen("pong"));
+                write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex],
+                      l_cBufferoToSendData,
+                      strlen(l_cBufferoToSendData));
+                bzero(l_cBufferoToSendData, USER_COMMAND_LENGHT);
+                
+            }
+/*            else if(strstr(l_cBufferTransmittedData, "pong") != NULL)
+            {
+                log_msg("srv ping");
+                strncpy(l_cBufferoToSendData, "ping", strlen("ping"));
+                write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex],
+                      l_cBufferoToSendData,
+                      strlen(l_cBufferoToSendData));
+                bzero(l_cBufferoToSendData, USER_COMMAND_LENGHT);
+            }*/
             else
             {
-                log_info("Received message from client [%s]", l_cBufferTransmittedData);
+                log_info("Socket [%d] Thread index [%d] : Received message from client [%s]", p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_iCurrentSocketIndex, l_cBufferTransmittedData);
             }
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }
@@ -249,7 +270,6 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             bzero(l_cBufferoToSendData, USER_COMMAND_LENGHT);
         }
 
-        write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], "ping", strlen("ping"));
         usleep(TIME_BETWEEN_TWO_REQUEST);
     }
 
@@ -357,6 +377,9 @@ void* clientConnectionThread(void* p_structCommonShared)
         return 0;
     }
 
+    strncpy(l_cBufferToSendData, "ping", strlen("ping"));
+    write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
+    bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
 
     while(l_bQuit != TRUE)
     {
@@ -373,7 +396,20 @@ void* clientConnectionThread(void* p_structCommonShared)
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bQuit = TRUE;
             }
-            else
+/*            else if(strstr(l_cBufferTransmittedData, "ping") != NULL)
+            {
+                strncpy(l_cBufferToSendData, "pong", strlen("pong"));
+                write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
+                bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
+                
+            }
+            else if(strstr(l_cBufferTransmittedData, "pong") != NULL)
+            {
+                strncpy(l_cBufferToSendData, "ping", strlen("ping"));
+                write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
+                bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
+            }*/
+             else
             {
                 log_info("Received message from server [%s]", l_cBufferTransmittedData);
             }
@@ -412,10 +448,10 @@ void* clientConnectionThread(void* p_structCommonShared)
 
             /* Clean the request to avoid loop-sending */
             bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
+            bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
         }
 
         usleep(TIME_BETWEEN_TWO_REQUEST + 10);
-        write(l_iSocketClient, "ping", strlen("ping"));
     }
 
     log_msg("Socket-client: Communication thread closed normally");

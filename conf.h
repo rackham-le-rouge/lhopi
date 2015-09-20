@@ -64,7 +64,7 @@
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 #define TCP_PORT                        5555
 #define MAX_CONNECTED_CLIENTS           16  /* When  program is a server, max clients connected to him */
-#define TIME_BETWEEN_TWO_REQUEST        5000
+#define TIME_BETWEEN_TWO_REQUEST        20000   /* FIXME why can i go over somthing like 20000 without lost the capability of sending messages */
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */

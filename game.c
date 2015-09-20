@@ -359,6 +359,7 @@ void userCommandGetter(structProgramInfo* p_structCommon)
         log_err("No more memory available... End%s", " ");
         exit(ENOMEM);
     }
+    bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT + 1);
 
     /* ncurses options to display input & display the cursor */
     echo();

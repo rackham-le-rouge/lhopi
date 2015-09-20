@@ -234,9 +234,9 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
 	unsigned int l_iIterateur;
 
 	l_iIterateur = 0;
-
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
+        usleep(2);
 		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM ) + p_iLineNumber, p_sLineContent[l_iIterateur] , enumLogLine);
 		/* We put -1 in order to take care of the scpace taken by this line */
 	}

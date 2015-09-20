@@ -62,6 +62,8 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
     if(pthread_create(&l_structWaitingThreadID,NULL, waitingForNewConnectionsThread, (void*)p_structCommon) < 0)
     {
         log_err("Could not create the WaitingForNewConnectionsThread %s", " ");
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
         return -1;
     }
 
@@ -98,6 +100,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     { 
         log_err("Socket-server: error opening socket. err %d", errno);
         log_msg("Socket-server: Waiting thread closed on error");
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
         return 0;
     }
 
@@ -105,6 +109,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     {
         log_err("Socket-server: error binding port. errno %d", errno);
         log_msg("Socket-server: Waiting thread closed on error");
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
         close(l_iSocket);
         return 0;
     }
@@ -113,6 +119,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     {
         log_err("Socket-server: listen failed. errno %d", errno);
         log_msg("Socket-server: Waiting thread closed on error");
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
         close(l_iSocket);
         return 0;
     }
@@ -133,6 +141,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
         {
             log_err("Could not create the thread %s", " ");
             log_msg("Socket-server: Waiting thread closed on error");
+            pthread_mutex_destroy(p_structCommon->pthreadMutex);
+            p_structCommon->bMutexInitialized = FALSE;
             close(l_iSocket);
             return 0;
         }
@@ -145,6 +155,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
             logBar(p_structCommon, DISPLAY, "");
 
             log_msg("Socket-server: Waiting thread closed on error");
+            pthread_mutex_destroy(p_structCommon->pthreadMutex);
+            p_structCommon->bMutexInitialized = FALSE;
             close(l_iSocket);
             return 0;
         }
@@ -156,11 +168,15 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
         log_err("Socket-server: Connection requested by peer, but failed to establish. Retrieved socket is empty. errno %d", errno);
         log_msg("Socket-server: Waiting thread closed on error");
         close(l_iSocket);
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
         return 0;
     }
 
     log_msg("Socket-server: Waiting thread closed normally");
     close(l_iSocket);
+    pthread_mutex_destroy(p_structCommon->pthreadMutex);
+    p_structCommon->bMutexInitialized = FALSE;
     return 0;
 }
 
@@ -241,7 +257,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             l_bExit = TRUE;
         }
 
-         /************************
+        /************************
          *
          *      Sending part
          *
@@ -264,7 +280,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
     log_msg("Socket-server: Terminal thread close normally");
     close(p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
-    p_structCommon->iClientsSockets[l_iCurrentSocketIndex] = -1;
+    p_structCommon->iClientsSockets[l_iCurrentSocketIndex] = 0;
     return 0;
 }
 
@@ -296,6 +312,8 @@ int tcpSocketClient(structProgramInfo* p_structCommon)
 
     if(pthread_create(&l_structWaitingThreadID,NULL, clientConnectionThread, (void*)p_structCommon) < 0)
     {
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
         log_err("Could not create the clientConnectionThread %s", " ");
         return -1;
     }
@@ -333,6 +351,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     {
         log_err("Socket-client: socket declaration failed. errno %d", errno);
         log_msg("Socket-client: Communication thread closed on error");
+        p_structCommon->bMutexInitialized = FALSE;
         return 0;
     }
 
@@ -353,6 +372,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     {
         log_err("Socket-client: Host doen't exist. errno %d", errno);
         log_msg("Socket-client: Communication thread closed on error");
+        p_structCommon->bMutexInitialized = FALSE;
         close(l_iSocketClient);
         return 0;
     }
@@ -362,6 +382,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     {
         log_err("Socket-client: connection to the server failed. errno %d", errno);
         log_msg("Socket-client: Communication thread closed on error");
+        p_structCommon->bMutexInitialized = FALSE;
         close(l_iSocketClient);
         return 0;
     }
@@ -424,6 +445,7 @@ void* clientConnectionThread(void* p_structCommonShared)
             {
                 log_err("Soket-client reading function failed %s", " ");
                 log_msg("Socket-client: Communication thread closed on error");
+                p_structCommon->bMutexInitialized = FALSE;
                 close(l_iSocketClient);
                 return 0;
             }

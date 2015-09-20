@@ -440,13 +440,14 @@ void playGame(structProgramInfo* p_structCommon)
     unsigned int l_iWatchdog;
 	unsigned int l_iCursorX;
 	unsigned int l_iCursorY;
-	unsigned int l_iMovement;	/* store the wanted move, if impossible this variable
-					  allow the program to go back */
+    unsigned int l_iMovement;	/* store the wanted move, if impossible this variable */
+    unsigned int l_iCurrentSocketIndex;		/* allow the program to go back */
 
 	l_cKey = 0;
 	l_iMovement = 0;
 	l_iCursorX = 1;
 	l_iCursorY = 1;
+    l_iCurrentSocketIndex = 0;
 	p_structCommon->iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
@@ -520,7 +521,18 @@ void playGame(structProgramInfo* p_structCommon)
                 while(p_structCommon->bNetworkDisconnectionRequiered == TRUE &&
                       p_structCommon->bMutexInitialized == TRUE)
                 {
-                    usleep(TIME_BETWEEN_TWO_REQUEST + 10);
+                    usleep(TIME_BETWEEN_TWO_REQUEST);
+                    for(l_iCurrentSocketIndex = 0; l_iCurrentSocketIndex < MAX_CONNECTED_CLIENTS ; l_iCurrentSocketIndex++)
+                    {
+                        if(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] != 0)
+                        {
+                            break;
+                        }
+                    }
+                    if(l_iCurrentSocketIndex >= MAX_CONNECTED_CLIENTS - 1)
+                    {
+                        break;
+                    }
                 }   
                 break;
             }

@@ -385,10 +385,12 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     char l_sParameter[40];          /* IPV6 mac lenght = 39 */
     char l_sMessageToDisplay[USER_COMMAND_LENGHT]; 
     unsigned int l_iIterator;
+    unsigned int l_iIterator2;
     int l_iReturned;
 
     l_iIterator = 0;
     l_iReturned = 0;
+    l_iIterator2 = 0;
     bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
     /* Command finding in the user provided string */
@@ -399,7 +401,19 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     l_sFirstWord[l_iIterator] = '\0';
 
+    /* Jump over spaces */
+    while(p_structCommon->sUserCommand[l_iIterator] == ' ')
+    {
+        l_iIterator++;
+    }
 
+    /* Take the parameter */
+    while(p_structCommon->sUserCommand[l_iIterator] != ' ' && p_structCommon->sUserCommand[l_iIterator] != '\0')
+    {
+        l_sParameter[l_iIterator2++] = p_structCommon->sUserCommand[l_iIterator];
+        l_iIterator++;
+    }
+    l_sParameter[l_iIterator2] = '\0';
 
     /* Command execution */
     if(!strncmp(l_sFirstWord, "bemaster", strlen("bemaster")))
@@ -414,9 +428,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
     {
-        /* FIXME */
-        UNUSED(l_sParameter);
-        strcpy(p_structCommon->sServerAddress, "127.0.0.1");
+        strcpy(p_structCommon->sServerAddress, l_sParameter);
         p_structCommon->bIpV4 = TRUE;
         tcpSocketClient(p_structCommon);
     }

@@ -428,8 +428,21 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
     {
+        if(strlen(l_sParameter) == 0)
+        {
+            strcpy(l_sParameter, "127.0.0.1");
+            log_msg("User gives no parameter, but need one. Thus put default one. 127.0.0.1");
+        }
+
         strcpy(p_structCommon->sServerAddress, l_sParameter);
-        p_structCommon->bIpV4 = TRUE;
+        if(strlen(l_sParameter) < 16)
+        {
+            p_structCommon->bIpV4 = TRUE;
+        }
+        else
+        {
+            p_structCommon->bIpV4 = FALSE;
+        }
         tcpSocketClient(p_structCommon);
     }
     else

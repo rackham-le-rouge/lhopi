@@ -15,6 +15,91 @@
 extern FILE* g_FILEOutputLogStream;
 
 
+/**
+  * General help on the network part    -> means call | ==> means start a thread and continue its execution | o means thread is close normally | X means thread is killed
+  *
+  *
+  * The main point of this doc is to show differences between server and client side in the way to handle receive / analyse / send part. The other main point is
+  * to show the differences when leaving is requiered. We can leave when the other side ask to leave, so we have to close our side of the connection ; and we can
+  * also leave when user want to quit the program. So, we have to signal it to the other side. When it is a client, it is simple (cause there is just one person
+  * to warn) but for a server, we have all clients to warn. Moreover, for a server, when asking is asked by user, we have to kill all threads, and the mecanism to
+  * wait until all threads are dead -properly please- is implemented in the caller -the caller have to know that it is a server, and pool the client socket table
+  * until there is only 0 in it.
+  *
+  * A ping pong mechanism was setted in order to have permanent communication between the two sides. read() is a blocking function, and i dont want to have more
+  * thread level, so, i do a permanent communication (stream is setted by the waiting time between the packets, this is a parameter of config.h). Client starts
+  * by sending a ping, server reply a pong when it receive the ping and so on. Server send only pong, and client only ping.
+  *
+  *
+  * Client
+  * ------
+  *
+  * Call from outside -> tcpSocketClient() (the interface for client) ==> clientConnectionThread()
+  *
+  * clientConnectionThread
+  * |
+  * |send the first 'ping' to the server
+  * |while(we_dont_ask_to_quit)
+  * | * read part *
+  * | read data from server (send back pong, execute commands etc...)
+  * | analyse data from server
+  * | if server ask to close the connection, leave the loop
+  * | * exit part *
+  * | if the user in client ask to quit, send a quit message to the server, and ask to leave to loop
+  * | * sending part *
+  * | if there is something to send in the buffer, send it to the server
+  * |end while
+  * |
+  * |if we reach this point, loop have been killed, thus something ask to quit network functions, thus clean socket, close it
+  * |in order to say to the caller that evrything is OK, down the flag bNetworkDisconnectionRequiered. The caller is poolling this signal.
+  * o
+  *
+  *
+  *
+  *
+  *
+  *
+  *
+  * Server
+  * ------
+  *
+  * Call from outside -> tcpSocketServer() (interface for server) ==> waitingForNewConnectionsThread ==> tcpSocketServerConnectionHander()
+  *                                                                                                  |==> tcpSocketServerConnectionHander()
+  *                                                                                                  |==> etc...
+  * tcpSocketServer
+  * |
+  * | waitingForNewConnectionsThread
+  * o |
+  *   | initialize main socket. This socket is not for a connection, just to wait incoming connections.
+  *   | if there is any network error in this function, release the mutex, clean it, clean the soket, and close the server-waiting thread. Server function is disabled until user ask a new start.
+  *   | wait until there is a connection asked by a client
+  *   | |
+  *   | | start a thread for this client
+  *   | | |
+  *   | | | If there is any error in this thread, I/O, connection, network, etc...  clean soket value in the p_structCommon->iClientsSockets table by putting 0 in it. Close socket. Close the thread.
+  *   | | | while we dont ask to leave the loop
+  *   | | | | * reception from client *
+  *   | | | | receive data from socket, analyse it and execute it. pong data is sent directly in this part.
+  *   | | | | if exit is requiered by client, leave the loop
+  *   | | | | * exit asked * in this case, exiting is asked by the user on the server-sided program
+  *   | | | | ask to leave the loop
+  *   | | | | * sending part *
+  *   | | | | if there is something in the buffer 'sosend' send it and fluch the buffer
+  *   | | | end of the loop
+  *   | | |
+  *   | | | if we are here, something ask to kill this client, thus close the socket, but not close mutex (some other thread may need it) and not down the bNetworkDisconnectionRequiered flag
+  *   | | | because we may are not the last thread. So, for the server side, just put 0 in the socket table p_structCommon->iClientsSockets[the_socket]. The caller is pooling this table
+  *   | | | and wait for a full-0 table. And close the thread.
+  *   | | o
+  *   | | this thread is waiting for new connections, so when exit was asked, it gonna be killed. Maybee this system have to be improved...
+  *   | /
+  *   |/
+  *   X
+  *
+  */
+
+
+
 
 
 
@@ -26,6 +111,13 @@ extern FILE* g_FILEOutputLogStream;
  *
  *******************************************/
 
+/**
+  * @brief This function is used to display log in the logBar in a thread context because you have to call mutexes in order to protect displaying functions called by logBar
+  * @param p_structCommon : all usefull datas for this program
+  * @param p_enumBarWantedAction : action asked to the logBar() function
+  * @param p_sNewLine : line to display, like in a logBar call
+  * @return nothing
+  */
 void threadSafeLogBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine)
 {
     pthread_mutex_lock(p_structCommon->pthreadMutex);
@@ -50,7 +142,10 @@ void threadSafeLogBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarW
 
 
 /** @brief PUBLIC INTERFACE
-  *
+  * Start this function in order to have a TCP server, binding port TCP_PORT
+  * This function starts a thread in charge of waiting for incoming connections.
+  * @param p_structCommon : all usefull data of the program
+  * @return -1 if error during starting the waiting thread, 0 if the thread starts correctly. Nothing matter with the TCP / Socket state
   */
 int tcpSocketServer(structProgramInfo* p_structCommon)
 {
@@ -71,6 +166,12 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 }
 
 
+/** @brief Waiting thread. This thread is on the server side, waiting for incoming client connections.
+  * This thread starts the 'master' socket, bind the port, and wait for connections. It accept connections
+  * and starts threads for each one in order to dialog with clients.
+  * @param p_structCommon : all usefull data of the program
+  * @return 0 cause this is a thread. Another system is used to have status sent back
+  */
 void* waitingForNewConnectionsThread(void* p_structCommonShared)
 {
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
@@ -181,6 +282,13 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
 }
 
 
+/** @brief Connection thread on the server side. This function is launched in a thread and have to manage connection with
+  * _a_ client. This threads die when client close connection or when there is a writing or reading issue.
+  * this function is cut in three parts. Receiving from client and analyse the sent data. Quit, only if the client sent a quit order
+  * -so close the connection and the thread properly- and a sending part to communicate data from the part to the client.
+  * @param p_structCommon : all usefull data of the program
+  * @return 0 cause this is a thread. Another system is used to have status sent back
+  */
 void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 {
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
@@ -301,7 +409,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
 
 /** @brief PUBLIC INTERFACE
-  *
+  * Start this function in order to have a TCP client, using port TCP_PORT
+  * This function starts a thread in charge of ask connection to a server.
+  * @param p_structCommon : all usefull data of the program
+  * @return -1 if error during starting the waiting thread, 0 if the thread starts correctly. Nothing matter with the TCP / Socket state
   */
 int tcpSocketClient(structProgramInfo* p_structCommon)
 {
@@ -323,6 +434,13 @@ int tcpSocketClient(structProgramInfo* p_structCommon)
 
 
 
+/** @brief Connection thread. This thread is on the client side, asking to a server a connection.
+  * If there is no server, or a network failure, this thread is closed and soket is cleaned.
+  * Normally, this thread send data of the client to the server and receive data from all other users
+  * from the server in order to display it.
+  * @param p_structCommon : all usefull data of the program
+  * @return 0 cause this is a thread. Another system is used to have status sent back
+  */
 void* clientConnectionThread(void* p_structCommonShared)
 {
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;

@@ -145,6 +145,24 @@ typedef enum
   * @var structProgramInfo_::iCol
   * Member 'iCol' contains number of colonne in the screen
   * @var structProgramInfo_::iRow
+  * Member 'iOffsetX' Beginning of the grid on the axis X
+  * @var structProgramInfo_::iOffsetX
+  * Member 'iOffsetY' Beginning of the grid on the axis Y
+  * @var structProgramInfo_::iOffsetY
+  * Member 'iServerSocket' For a client, socket value of the server. Returned by open() on the server address
+  * @var structProgramInfo_::iServerSocket
+  * Member 'iClientsSockets' For a server, array of the soket value (returned by accept()) of all the remote clients
+  * @var structProgramInfo_::iClientsSockets
+  * Member 'bIpV4' Boolean. For a client, 1 means server address is provided in IPV4, 0 means IPV6.
+  * @var structProgramInfo_::bIpV4
+  * Member 'bMutexInitialized' For client and server, means that multithread is started and mutex was initialized. Thus, we have to release it at the end of the execution
+  * @var structProgramInfo_::bMutexInitialized
+  * Member 'bNetworkDisconnectionRequiered'  For client and server, means that the user have asked to terminate the network connection. Threads receive this message, close the active connection, close the thread. For a client, after that, put FALSE in this value. For a server, because there is many threads, we can't do that. So the caller have to pool the remote client socket list, and wait for all threads put 0 in their cases.
+  * @var structProgramInfo_::bNetworkDisconnectionRequiered
+  * Member 'sUserCommand' Store the command entred by user in order to share it with sending / receiving thread
+  * @var structProgramInfo_::sUserCommand
+  * Member 'sServerAddress' For a client, this is the parameter provided by user as an address for the remote server. IPV4 / IPV6 is automatically decided by the lenght of the address
+  * @var structProgramInfo_::sServerAddress
   * Member 'iRow' contains number of row in the screen
   * @var structProgramInfo_::cGrid
   * Member 'cGrid' contains the grid. For each position in the matrix, grid store all informations (color etc...)

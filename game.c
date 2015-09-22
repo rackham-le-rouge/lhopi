@@ -367,7 +367,7 @@ void userCommandGetter(structProgramInfo* p_structCommon)
 
     drawElement(0, p_structCommon->iRow - 2, ':', enumLogLine);
     drawElement(1, p_structCommon->iRow - 2, '>', enumLogLine);
-    mvscanw(p_structCommon->iRow - 2, 3,"%s", p_structCommon->sUserCommand);
+    mvscanw(p_structCommon->iRow - 2, 3,"%[^\n]", p_structCommon->sUserCommand);
 
     /* ncurses options to undo modifications */
     curs_set(0);

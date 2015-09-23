@@ -294,48 +294,37 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
 
     if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_structCommon) > 6)
     {
-        /* found */
-        logBar(p_structCommon, ADD_LINE, "Loop found");
-        logBar(p_structCommon, DISPLAY, "");
+        /* Loop found case */
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START_FILLING;
 
-
-
-
-    p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START_FILLING;
-
-    for(p_iCursorY = 0; p_iCursorY < p_structCommon->iSizeY; p_iCursorY++)
-    { 
-        for(p_iCursorX = 0; p_iCursorX < p_structCommon->iSizeX; p_iCursorX++)
+        for(p_iCursorY = 0; p_iCursorY < p_structCommon->iSizeY; p_iCursorY++)
         {
-            /* We are on an already busy matrix, jump over it */
-            if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][p_iCursorX] != enumNoir)
+            for(p_iCursorX = 0; p_iCursorX < p_structCommon->iSizeX; p_iCursorX++)
             {
-                continue;
-            }
+                /* We are on an already busy matrix, jump over it */
+                if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][p_iCursorX] != enumNoir)
+                {
+                    continue;
+                }
     
-            if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_structCommon) == 1)
-            {
-                /* found */
-                logBar(p_structCommon, ADD_LINE, "Area to fill found");
-                logBar(p_structCommon, DISPLAY, "");
-                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_structCommon);
-                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
+                if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_structCommon) == 1)
+                {
+                    /* Area to fill found */
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_structCommon);
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
+                }
+                else
+                {
+                }
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
             }
-            else
-            {
-            }
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
         }
-    }
-
-
     }
     else
     {
-        logBar(p_structCommon, ADD_LINE, "NO Loop found");
-        logBar(p_structCommon, DISPLAY, "");
+        /* No loop found case */
     }
 
     return EXIT_FAILURE; 
@@ -387,10 +376,12 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     unsigned int l_iIterator;
     unsigned int l_iIterator2;
     int l_iReturned;
+    unsigned int l_iWatchdog;
 
     l_iIterator = 0;
     l_iReturned = 0;
     l_iIterator2 = 0;
+    l_iWatchdog = 0;
     bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
     /* Command finding in the user provided string */
@@ -434,12 +425,6 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             log_msg("User gives no parameter, but need one. Thus put default one. 127.0.0.1");
         }
 
-        /* Reset the board */
-        cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
-        cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
-        cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
-        drawTheBoardGame(p_structCommon);
-
         strcpy(p_structCommon->sServerAddress, l_sParameter);
         if(strlen(l_sParameter) < 16)
         {
@@ -455,7 +440,21 @@ void userCommandExecute(structProgramInfo* p_structCommon)
         do
         {
             usleep(1000);
-        }while(p_structCommon->bAbleToRestartGame == FALSE);
+            l_iWatchdog++;
+        }while(p_structCommon->bAbleToRestartGame == FALSE && l_iWatchdog < 1000);
+        if(l_iWatchdog >= 1000)
+        {
+            log_msg("Timeout during client connection to the server.");
+            strcpy(l_sMessageToDisplay, "Timeout during client connection to the server");
+        }
+        else
+        {
+            /* Reset the board */
+            cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
+            cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            drawTheBoardGame(p_structCommon);
+        }
     }
     else
     {

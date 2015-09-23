@@ -38,10 +38,11 @@ extern FILE* g_FILEOutputLogStream;
   *
   * clientConnectionThread
   * |
-  * |send the first 'ping' to the server
+  * |client ask for init information with request r0000
   * |while(we_dont_ask_to_quit)
   * | * read part *
   * | read data from server (send back pong, execute commands etc...)
+  * | read specific data from server, init values provided by request r0001, 2, 3. And send back ack0001, 2, 3.
   * | analyse data from server
   * | if server ask to close the connection, leave the loop
   * | * exit part *
@@ -80,6 +81,7 @@ extern FILE* g_FILEOutputLogStream;
   *   | | | while we dont ask to leave the loop
   *   | | | | * reception from client *
   *   | | | | receive data from socket, analyse it and execute it. pong data is sent directly in this part.
+  *   | | | | send init info to the client, when ack0003 -the last one- is received send back a pong to init ping-pong system and keep the connection working
   *   | | | | if exit is requiered by client, leave the loop
   *   | | | | * exit asked * in this case, exiting is asked by the user on the server-sided program
   *   | | | | ask to leave the loop

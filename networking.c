@@ -381,7 +381,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0001 %d", p_structCommon->iClientsColor[l_iCurrentSocketIndex]);
                 break;
             case 2:
-                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0002 %d", 12);
+                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0002 %d", 0);
                 break;
             case 3:
                 snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0003");

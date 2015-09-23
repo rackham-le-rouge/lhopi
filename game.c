@@ -496,7 +496,7 @@ void playGame(structProgramInfo* p_structCommon)
 	do
 	{
 		/* Display wursor each time */
-		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, p_structCommon->cGrid);
+		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, FALSE, p_structCommon->cGrid);
 		refresh();
 
 		l_cKey = getch();
@@ -544,6 +544,9 @@ void playGame(structProgramInfo* p_structCommon)
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
+                /* Display wursor each time */
+                displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
+                refresh();
 
                 /* Clean the screen */
                 logBar(p_structCommon, DISPLAY, "");

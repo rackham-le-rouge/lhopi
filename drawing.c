@@ -213,23 +213,27 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
   * @param p_iCursorY : Cursor row
   * @param p_cGrid : Three dimentional tabular storing all values of the game board
   */
-void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, char*** p_cGrid)
+void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, char p_bForceRedraw, char*** p_cGrid)
 {
 	/* Init of static values, in order to erase former cursor position */
 	static unsigned int l_iPreviousCursorXPosition = 0;
 	static unsigned int l_iPreviousCursorYPosition = 1;
 
 	/* Avoid redraw because it will erase the cursor and not redraw it */
-	if(!(l_iPreviousCursorXPosition == p_iCursorX && l_iPreviousCursorYPosition == p_iCursorY))
+	if(!(l_iPreviousCursorXPosition == p_iCursorX && l_iPreviousCursorYPosition == p_iCursorY) || p_bForceRedraw == TRUE)
 	{
 		/* draw the cursor */
 		drawElement(p_iCursorX + p_iOffsetX, p_iCursorY + p_iOffsetY, ' ' , enumConsole);
 
 		/* re-draw the grid on the former position of the cursor */
-		drawElement(l_iPreviousCursorXPosition + p_iOffsetX,
-			l_iPreviousCursorYPosition + p_iOffsetY,
-			p_cGrid[TEXT_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition],
-			p_cGrid[COLOR_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition]);
+        if(p_bForceRedraw != TRUE)
+        {
+            drawElement(l_iPreviousCursorXPosition + p_iOffsetX,
+                l_iPreviousCursorYPosition + p_iOffsetY,
+                p_cGrid[TEXT_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition],
+                p_cGrid[COLOR_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition]);
+        }
+
 		/* refresh of the 'previous' values */
 		l_iPreviousCursorXPosition = p_iCursorX;
 		l_iPreviousCursorYPosition = p_iCursorY;

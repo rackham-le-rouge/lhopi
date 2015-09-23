@@ -442,6 +442,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             usleep(1000);
             l_iWatchdog++;
         }while(p_structCommon->bAbleToRestartGame == FALSE && l_iWatchdog < 1000);
+
         if(l_iWatchdog >= 1000)
         {
             log_msg("Timeout during client connection to the server.");
@@ -456,14 +457,22 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             drawTheBoardGame(p_structCommon);
         }
     }
+    else if(!strncmp(l_sFirstWord, "sendmsg", strlen("sendmsg")))
+    {
+        /* The active thread is going to handle and purge the buffer */
+        bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
+    }
     else
     {
         /* Other command */
         strcpy(l_sMessageToDisplay, "Unrecognized command");
     }
 
-    logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
-    logBar(p_structCommon, DISPLAY, "");
+    if(strlen(l_sMessageToDisplay) > 0)
+    {
+        logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
+        logBar(p_structCommon, DISPLAY, "");
+    }
 }
 
 

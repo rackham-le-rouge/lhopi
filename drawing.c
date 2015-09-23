@@ -153,6 +153,8 @@ void initColor(void)
 void drawTheBoardGame(structProgramInfo* p_structCommon)
 {
 	unsigned int l_iIterateur;
+    unsigned int l_iCursorY;
+    unsigned int l_iCursorX;
 
 	l_iIterateur = 0;
 
@@ -184,6 +186,17 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
  
     attroff(COLOR_PAIR(enumBoardLine));
 
+    /* Draw the whole board game */
+    for(l_iCursorY = 0; l_iCursorY < p_structCommon->iSizeY; l_iCursorY++)
+    {
+        for(l_iCursorX = 0; l_iCursorX < p_structCommon->iSizeX; l_iCursorX++)
+        {
+            drawElement(p_structCommon->iOffsetX + l_iCursorX,
+                        p_structCommon->iOffsetY + l_iCursorY,
+					    p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
+					    p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX]);
+        }
+    }
 
 
 	for (l_iIterateur = 0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)

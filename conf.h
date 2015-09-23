@@ -168,12 +168,14 @@ typedef enum
   * Member 'cGrid' contains the grid. For each position in the matrix, grid store all informations (color etc...)
   * @var structProgramInfo_::iSizeX
   * Member 'iSizeX' contains height of the board game
+  * @var structProgramInfo_::bAbleToRestartGame
+  * Member 'bAbleToRestartGame' this flag is set to FALSE until cleaning function have finish and put TRUE. Thus the game restart
   * @var structProgramInfo_::iSizeY
   * Member 'iSizeY' contains height of the board game
   * @var structProgramInfo_::iCurrentUserNumber
   * Member 'iCurrentUserNumber' contains the number of the local user of the game
   * @var structProgramInfo_::iCurrentUserColor
-  * Member 'iCurrentUserNumber' contains the rock color of the current user
+  * Member 'iCurrentUserColor' contains the rock color of the current user
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -193,10 +195,11 @@ typedef struct structProgramInfo_
     char    bIpV4;
     char    bMutexInitialized;
     char    bNetworkDisconnectionRequiered;
+    char    bAbleToRestartGame;
     char*   sUserCommand;
     char*   sServerAddress;
     char*** cGrid;
-    unsigned char padding[3];
+    unsigned char padding[2];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

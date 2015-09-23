@@ -298,9 +298,11 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     char l_bExit;
     int l_iReturnedReadWriteValue;
     int l_iCurrentSocketIndex;
+    int l_iClientRequestInit;
 
     l_bExit = FALSE;
     l_iCurrentSocketIndex = MAX_CONNECTED_CLIENTS - 1;
+    l_iClientRequestInit = 0;
 
     log_msg("Socket-server: Terminal thread started");
     while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] == 0)
@@ -329,7 +331,6 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
          ************************/
         if(l_iReturnedReadWriteValue > 0)
         {
-            log_msg("srv rcp smth");
             if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
             {
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
@@ -337,13 +338,28 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             }
             else if(strstr(l_cBufferTransmittedData, "ping") != NULL)
             {
-                log_msg("srv pong");
                 strncpy(l_cBufferoToSendData, "pong", strlen("pong"));
                 write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex],
                       l_cBufferoToSendData,
                       strlen(l_cBufferoToSendData));
                 bzero(l_cBufferoToSendData, USER_COMMAND_LENGHT);
                 
+            }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv r0000") != NULL)
+            {
+                l_iClientRequestInit = 1;
+            }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv ack0001") != NULL)
+            {
+                l_iClientRequestInit = 2;
+            }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv ack0002") != NULL)
+            {
+                l_iClientRequestInit = 3;
+            }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv ack0003") != NULL)
+            {
+                l_iClientRequestInit = 4;
             }
             else
             {
@@ -352,6 +368,29 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }
 
+
+        switch(l_iClientRequestInit)
+        {
+            case 0:
+                /* Normal state of an intialized remote-host */
+                break;
+            case 1:
+                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0001 %d", 10);
+                break;
+            case 2:
+                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0002 %d", 12);
+                break;
+            case 3:
+                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0003");
+                break;
+            case 4:
+                l_iClientRequestInit = 0;
+                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "pong");
+                break;
+            default:
+                log_msg("Server: unexpected starting runlevel reached");
+                break;
+        }
 
 
         /************************
@@ -452,6 +491,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
     char l_cBufferToSendData[USER_COMMAND_LENGHT];
     char l_bQuit;
+    char l_bHaveToGetStartingInformationsFromServer;
     struct in_addr l_structIpV4Addr;
     struct in6_addr l_structIpV6Addr;
 
@@ -461,6 +501,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     l_structServAddr.sin_port = htons(TCP_PORT);
     l_iReturnedReadWriteValue = 0;
     l_bQuit = FALSE;
+    l_bHaveToGetStartingInformationsFromServer = TRUE;
 
     log_msg("Socket-client: Communication thread started");
 
@@ -504,14 +545,31 @@ void* clientConnectionThread(void* p_structCommonShared)
         close(l_iSocketClient);
         return 0;
     }
-
+/*
     strncpy(l_cBufferToSendData, "ping", strlen("ping"));
-    write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
+    if(write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData)) < 0)
+    {
+        l_bQuit = TRUE;
+    }
     bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
+*/
+
+    /* First start */
+    if(l_bHaveToGetStartingInformationsFromServer == TRUE)
+    {
+        strcpy(l_cBufferToSendData, "cli_srv r0000");
+        if(write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData)) < 0)
+        {
+            /* Fail at writing, leave the thread */
+            l_bQuit = TRUE;
+        }
+        bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
+    }
+
 
     while(l_bQuit != TRUE)
     {
-         /************************
+        /************************
          *
          *     Receiving part
          *
@@ -530,12 +588,34 @@ void* clientConnectionThread(void* p_structCommonShared)
                 write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
                 bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
             }
-             else
+            else if(strstr(l_cBufferTransmittedData, "r0001") != NULL)
+            {
+                p_structCommon->iCurrentUserColor = atoi(strstr(l_cBufferTransmittedData, "r0001") + strlen("r0001"));
+                log_info("New Color %d", p_structCommon->iCurrentUserColor);
+                strcpy(l_cBufferToSendData, "cli_srv ack0001");
+            }
+            else if(strstr(l_cBufferTransmittedData, "r0002") != NULL)
+            {
+                p_structCommon->iCurrentUserNumber = atoi(strstr(l_cBufferTransmittedData, "r0002") + strlen("r0002"));
+                log_info("New ID %d", p_structCommon->iCurrentUserNumber);
+                strcpy(l_cBufferToSendData, "cli_srv ack0002");
+            }
+            else if(strstr(l_cBufferTransmittedData, "r0003") != NULL)
+            {
+                p_structCommon->bAbleToRestartGame = TRUE;
+                strcpy(l_cBufferToSendData, "cli_srv ack0003");
+            }
+            else
             {
                 log_info("Received message from server [%s]", l_cBufferTransmittedData);
             }
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }
+
+
+
+
+
 
          /************************
          *
@@ -554,9 +634,8 @@ void* clientConnectionThread(void* p_structCommonShared)
          *      Sending part
          *
          ************************/
-        else if(strlen(p_structCommon->sUserCommand) > 0)
+        else if(strlen(l_cBufferToSendData) > 0)
         {
-            strncpy(l_cBufferToSendData, p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
             l_iReturnedReadWriteValue = write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
 
             if(l_iReturnedReadWriteValue == 0 )
@@ -571,6 +650,11 @@ void* clientConnectionThread(void* p_structCommonShared)
             /* Clean the request to avoid loop-sending */
             bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
             bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
+        }
+        else if(strstr(p_structCommon->sUserCommand, "bouh"))
+        {
+            strcpy(l_cBufferToSendData, "bouh");
+            write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
         }
 
         usleep(TIME_BETWEEN_TWO_REQUEST + 10);

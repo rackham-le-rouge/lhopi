@@ -32,9 +32,6 @@ void gameInit(structProgramInfo* p_structCommon)
 	l_iIteratorLayer = 0;
 	l_iTmp = 0;
 
-	/* Preparation of the graphic part of the game */
-	drawTheBoardGame(p_structCommon);
-
    logBar(p_structCommon, ADD_LINE, "Party starting...");
    logBar(p_structCommon, DISPLAY, "");
 
@@ -64,7 +61,7 @@ void gameInit(structProgramInfo* p_structCommon)
 					l_iTmp = ' ';
 					break;
 					case LOOPALGO_MATRIX:
-					l_iTmp = ' ';
+					l_iTmp = POINT_EMPTY;
 					break;
 					default:
 					l_iTmp = 0;
@@ -74,6 +71,9 @@ void gameInit(structProgramInfo* p_structCommon)
 			}
 		}
 	}
+
+	/* Preparation of the graphic part of the game and draw board */
+    drawTheBoardGame(p_structCommon);
 }
 
 /** @brief	To clean a layer of the grid
@@ -434,6 +434,12 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             log_msg("User gives no parameter, but need one. Thus put default one. 127.0.0.1");
         }
 
+        /* Reset the board */
+        cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
+        cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
+        cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+        drawTheBoardGame(p_structCommon);
+
         strcpy(p_structCommon->sServerAddress, l_sParameter);
         if(strlen(l_sParameter) < 16)
         {
@@ -444,6 +450,12 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             p_structCommon->bIpV4 = FALSE;
         }
         tcpSocketClient(p_structCommon);
+
+        /* Wait until client thread had receive all informations from the server */
+        do
+        {
+            usleep(1000);
+        }while(p_structCommon->bAbleToRestartGame == FALSE);
     }
     else
     {

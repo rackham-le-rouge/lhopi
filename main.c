@@ -193,6 +193,7 @@ int main(int argc, char** argv)
     l_structCommon->sUserCommand = NULL;
     l_structCommon->sServerAddress = NULL;
     l_structCommon->iServerSocket = 0;
+    l_structCommon->bAbleToRestartGame = FALSE;
     l_structCommon->pthreadMutex = NULL;
     l_structCommon->bMutexInitialized = FALSE;
     l_structCommon->bNetworkDisconnectionRequiered = FALSE;

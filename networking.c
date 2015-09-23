@@ -230,8 +230,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
 
     l_structClientLen = sizeof(l_structClientAddr);
 
-    logBar(p_structCommon, ADD_LINE, "Waiting for incomming connections !");
-    logBar(p_structCommon, DISPLAY, "");
+    threadSafeLogBar(p_structCommon, ADD_LINE, "Waiting for incomming connections !");
+    threadSafeLogBar(p_structCommon, DISPLAY, "");
 
 
     /* Add all clients */
@@ -254,8 +254,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
         {
             log_err("Socket-server: can't have more client connected %s", " ");
 
-            logBar(p_structCommon, ADD_LINE, "Max network users reached. Refusing connections.");
-            logBar(p_structCommon, DISPLAY, "");
+            threadSafeLogBar(p_structCommon, ADD_LINE, "Max network users reached. Refusing connections.");
+            threadSafeLogBar(p_structCommon, DISPLAY, "");
 
             log_msg("Socket-server: Waiting thread closed on error");
             pthread_mutex_destroy(p_structCommon->pthreadMutex);
@@ -319,8 +319,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     }
     log_info("Socket-server: Terminal thread use the socket index %d/%d with the value %d", l_iCurrentSocketIndex, MAX_CONNECTED_CLIENTS, p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
 
-    logBar(p_structCommon, ADD_LINE, "New user joined");
-    logBar(p_structCommon, DISPLAY, "");
+    threadSafeLogBar(p_structCommon, ADD_LINE, "New user joined");
+    threadSafeLogBar(p_structCommon, DISPLAY, "");
 
     while(l_bExit != TRUE)
     {

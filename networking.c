@@ -362,6 +362,29 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             {
                 l_iClientRequestInit = 4;
             }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv r0004") != NULL)
+            {
+                p_structCommon->cUserMove = *(strstr(l_cBufferTransmittedData, "r0004") + strlen("r0004") + 1);
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0004 %c", p_structCommon->cUserMove);
+                log_info("received use move [%c]", p_structCommon->cUserMove);
+
+                if(p_structCommon->cUserMove != 0)
+                {
+                    switch(p_structCommon->cUserMove)
+                    {
+                        case 'd':
+                            break
+                        case 'c':
+                            break
+                        case 'a':
+                            break
+                        case 'b':
+                            break
+                        case 'r':
+                            break
+                    }
+                }
+            }
             else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
@@ -616,6 +639,13 @@ void* clientConnectionThread(void* p_structCommonShared)
                 p_structCommon->bAbleToRestartGame = TRUE;
                 strcpy(l_cBufferToSendData, "cli_srv ack0003");
             }
+            else if(strstr(l_cBufferTransmittedData, "ack0004") != NULL)
+            {
+                if(*(strstr(l_cBufferTransmittedData, "ack0004") + strlen("ack0004") + 1) == p_structCommon->cUserMove)
+                {
+                    p_structCommon->cUserMove = 0;
+                }
+            }
             else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
@@ -631,8 +661,12 @@ void* clientConnectionThread(void* p_structCommonShared)
 
 
 
-
-        if(strstr(p_structCommon->sUserCommand, "sendmsg") != NULL)
+        /* Have to use if -> else if -> else if etc... in order to create some kind of priority system */
+        if(p_structCommon->cUserMove != 0)
+        {
+            snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0004 %c", p_structCommon->cUserMove);
+        }
+        else if(strstr(p_structCommon->sUserCommand, "sendmsg") != NULL)
         {
             strcpy(l_cBufferToSendData, "srv_cli msg ");
             strcat(l_cBufferToSendData, strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));

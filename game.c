@@ -497,6 +497,7 @@ void playGame(structProgramInfo* p_structCommon)
 	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
 	p_structCommon->iCurrentUserColor = 1; /* FIXME multiplayer mode incoming */
+    p_structCommon->cUserMove = 0;
 
 	/* Init the game, screen stuff etc... */
 	gameInit(p_structCommon);
@@ -516,6 +517,7 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* LEFT */
 				l_iCursorX = (l_iCursorX < 1) ? p_structCommon->iSizeX - 1 : l_iCursorX - 1;
+                p_structCommon->cUserMove = 'd';
 				l_iMovement = DIRECTION_LEFT;
 				break;
 			}
@@ -524,6 +526,7 @@ void playGame(structProgramInfo* p_structCommon)
 				/* RIGHT */
 				l_iCursorX = (l_iCursorX > p_structCommon->iSizeX - 2) ?
                     0 : l_iCursorX + 1;
+                p_structCommon->cUserMove = 'c';
 				l_iMovement = DIRECTION_RIGHT;
 				break;
 			}
@@ -531,6 +534,7 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* UP */
 				l_iCursorY = (l_iCursorY < 1) ? p_structCommon->iSizeY - 1 : l_iCursorY - 1;
+                p_structCommon->cUserMove = 'a';
 				l_iMovement = DIRECTION_UP;
 				break;
 			}
@@ -539,6 +543,7 @@ void playGame(structProgramInfo* p_structCommon)
 				/* DOWN */
 				l_iCursorY = (l_iCursorY > p_structCommon->iSizeY - 2) ?
                     0 : l_iCursorY + 1;
+                p_structCommon->cUserMove = 'b';
 				l_iMovement = DIRECTION_DOWN;
 				break;
 			}
@@ -587,6 +592,7 @@ void playGame(structProgramInfo* p_structCommon)
 			case ' ':
 			{
 				/* When the user drop a rock */
+                p_structCommon->cUserMove = 'r';
 
 				/* Put the color information in the matrix */
 				p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] =

@@ -192,6 +192,7 @@ int main(int argc, char** argv)
 	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
     l_structCommon->sUserCommand = NULL;
     l_structCommon->sServerAddress = NULL;
+    l_structCommon->cUserMove = 0;
     l_structCommon->iServerSocket = 0;
     l_structCommon->bAbleToRestartGame = FALSE;
     l_structCommon->pthreadMutex = NULL;

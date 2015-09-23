@@ -177,6 +177,8 @@ typedef enum
   * Member 'iCurrentUserNumber' contains the number of the local user of the game
   * @var structProgramInfo_::iCurrentUserColor
   * Member 'iCurrentUserColor' contains the rock color of the current user
+  * @var structProgramInfo_::cUserMove
+  * Member 'cUserMove' Last user move, used also as a flag. When this value goes back to 0 means that the user move have been transmitted to the server
   * @var structProgramInfo_::iClientsColor
   * Member 'iClientsColor' Table containing all the clients color when you are on the server side of the app
   * @var structProgramInfo_::padding
@@ -200,10 +202,11 @@ typedef struct structProgramInfo_
     char    bMutexInitialized;
     char    bNetworkDisconnectionRequiered;
     char    bAbleToRestartGame;
+    char    cUserMove;
     char*   sUserCommand;
     char*   sServerAddress;
     char*** cGrid;
-    unsigned char padding[2];
+    unsigned char padding[1];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

@@ -63,8 +63,9 @@
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 #define TCP_PORT                        5555
-#define MAX_CONNECTED_CLIENTS           16  /* When  program is a server, max clients connected to him */
+#define MAX_CONNECTED_CLIENTS           6  /* When  program is a server, max clients connected to him | 8 colors available, but there is black and the current user color */
 #define TIME_BETWEEN_TWO_REQUEST        20000   /* FIXME why can i go over somthing like 20000 without lost the capability of sending messages */
+
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */
@@ -176,6 +177,8 @@ typedef enum
   * Member 'iCurrentUserNumber' contains the number of the local user of the game
   * @var structProgramInfo_::iCurrentUserColor
   * Member 'iCurrentUserColor' contains the rock color of the current user
+  * @var structProgramInfo_::iClientsColor
+  * Member 'iClientsColor' Table containing all the clients color when you are on the server side of the app
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -192,6 +195,7 @@ typedef struct structProgramInfo_
     unsigned int  iCurrentUserColor;
     int           iServerSocket;
     int*          iClientsSockets;
+    unsigned int* iClientsColor;
     char    bIpV4;
     char    bMutexInitialized;
     char    bNetworkDisconnectionRequiered;

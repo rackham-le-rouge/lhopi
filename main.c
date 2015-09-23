@@ -198,7 +198,10 @@ int main(int argc, char** argv)
     l_structCommon->bMutexInitialized = FALSE;
     l_structCommon->bNetworkDisconnectionRequiered = FALSE;
     l_structCommon->iClientsSockets = (int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(int));
+    l_structCommon->iClientsColor = (unsigned int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(unsigned int));
 	l_iTmp = 0;
+
+    memset(l_structCommon->iClientsColor, 0, MAX_CONNECTED_CLIENTS);
 
     l_structCommon->pthreadMutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
     if(l_structCommon->pthreadMutex == NULL)
@@ -279,6 +282,7 @@ int main(int argc, char** argv)
     }
     free(l_structCommon->pthreadMutex);
     free(l_structCommon->iClientsSockets);
+    free(l_structCommon->iClientsColor);
     free(l_structCommon->sUserCommand);
     free(l_structCommon->sServerAddress);
 	free(l_structCommon->cGrid);

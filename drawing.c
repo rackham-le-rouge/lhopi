@@ -255,3 +255,46 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
 	}
 }
 
+/** @brief This function send back the next available color for new user
+    @param p_structCommon : Struct with all the program information
+    @return The free color, if not, -1 */
+int getNextAvailableUserColor(structProgramInfo* p_structCommon)
+{
+    unsigned int l_iIterator;
+    unsigned int l_iPossibleColor;
+    char l_bColorFound = FALSE;
+
+    l_iIterator = 0;
+    l_iPossibleColor = 0;
+
+    for(l_iPossibleColor = enumVert; l_iPossibleColor < enumVert + MAX_CONNECTED_CLIENTS; l_iPossibleColor++)
+    {
+        /* Really dirty - Cf conf.h color 7 is reserved, we have to jump over it */
+        if(l_iPossibleColor == 7)
+        {
+            l_iPossibleColor = enumBlanc;
+        }
+
+        for(l_iIterator = 0; l_iIterator < MAX_CONNECTED_CLIENTS; l_iIterator++)
+        {
+            if(p_structCommon->iClientsColor[l_iIterator] == l_iPossibleColor)
+            {
+                l_bColorFound = TRUE;
+            }
+        }
+
+        if (l_bColorFound == FALSE)
+        {
+            return l_iPossibleColor;
+        }
+        l_bColorFound = FALSE;
+
+        /* Really dirty - Cf conf.h color 7 is reserved, we have to jump over it */
+        if(l_iPossibleColor == enumBlanc)
+        {
+            l_iPossibleColor = 7;
+        }
+    }
+
+    return -1;
+}

@@ -377,7 +377,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 /* Normal state of an intialized remote-host */
                 break;
             case 1:
-                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0001 %d", 10);
+                p_structCommon->iClientsColor[l_iCurrentSocketIndex] = getNextAvailableUserColor(p_structCommon);
+                snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0001 %d", p_structCommon->iClientsColor[l_iCurrentSocketIndex]);
                 break;
             case 2:
                 snprintf(l_cBufferoToSendData, USER_COMMAND_LENGHT, "cli_srv r0002 %d", 12);
@@ -547,16 +548,8 @@ void* clientConnectionThread(void* p_structCommonShared)
         close(l_iSocketClient);
         return 0;
     }
-/*
-    strncpy(l_cBufferToSendData, "ping", strlen("ping"));
-    if(write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData)) < 0)
-    {
-        l_bQuit = TRUE;
-    }
-    bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
-*/
 
-    /* First start */
+    /* First start init client informations */
     if(l_bHaveToGetStartingInformationsFromServer == TRUE)
     {
         strcpy(l_cBufferToSendData, "cli_srv r0000");

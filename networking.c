@@ -301,10 +301,18 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     int l_iReturnedReadWriteValue;
     int l_iCurrentSocketIndex;
     int l_iClientRequestInit;
+    int l_iCursorX;
+    int l_iCursorY;
+    unsigned int l_iCursorBrowseringX;
+    unsigned int l_iCursorBrowseringY;
 
     l_bExit = FALSE;
     l_iCurrentSocketIndex = MAX_CONNECTED_CLIENTS - 1;
     l_iClientRequestInit = 0;
+    l_iCursorX = 1;
+    l_iCursorY = 1;
+    l_iCursorBrowseringX = 0;
+    l_iCursorBrowseringY = 0;
 
     log_msg("Socket-server: Terminal thread started");
     while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] == 0)
@@ -338,13 +346,56 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bExit = TRUE;
             }
-            else if(strstr(l_cBufferTransmittedData, "ping") != NULL)
+            else if(strstr(l_cBufferTransmittedData, "r0005") != NULL)
             {
-                strncpy(l_cBufferToSendData, "pong", strlen("pong"));
+                /* Receive position and action done by user */
+                l_iCursorX = atoi(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 1);
+                l_iCursorY = atoi(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 6);
+                p_structCommon->cUserMove = *(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 11);
+
+                /* If user put a rock, do the same here */
+                if(p_structCommon->cUserMove == 'r')
+                {
+log_info("rock on X %d Y %d", l_iCursorX, l_iCursorY);
+                    p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] = p_structCommon->iClientsColor[l_iCurrentSocketIndex];
+                    p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX] = ' ';
+                    drawElement(l_iCursorX + p_structCommon->iOffsetX, l_iCursorY + p_structCommon->iOffsetY,
+                                p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
+                                p_structCommon->iClientsColor[l_iCurrentSocketIndex]);
+                    loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
+                }
+
+                /* Prepare answer by continuing to tell the content of the grid */
+                if(p_structCommon->cUserMove == 'Z')
+                {
+                    snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c",
+                                l_iCursorBrowseringX,
+                                l_iCursorBrowseringY,
+                                p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX],
+                                p_structCommon->cGrid[TEXT_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX]);
+                }
+                else if(p_structCommon->cUserMove == 'r')
+                {
+                    snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c",
+                                l_iCursorX,
+                                l_iCursorY,
+                                p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX],
+                                p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX]);
+                }
+
                 write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex],
                       l_cBufferToSendData,
                       strlen(l_cBufferToSendData));
                 bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
+
+                if(++l_iCursorBrowseringX >= p_structCommon->iSizeX)
+                {
+                    l_iCursorBrowseringX = 0;
+                    if(++l_iCursorBrowseringY >= p_structCommon->iSizeY)
+                    {
+                        l_iCursorBrowseringY = 0;
+                    }
+                }
             }
             else if(strstr(l_cBufferTransmittedData, "cli_srv r0000") != NULL)
             {
@@ -362,10 +413,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             {
                 l_iClientRequestInit = 4;
             }
-            else if(strstr(l_cBufferTransmittedData, "cli_srv r0004") != NULL)
+            else if(strstr(l_cBufferTransmittedData, "cli_srv r0005") != NULL)
             {
-                p_structCommon->cUserMove = *(strstr(l_cBufferTransmittedData, "r0004") + strlen("r0004") + 1);
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0004 %c", p_structCommon->cUserMove);
+                p_structCommon->cUserMove = *(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 1);
+                //snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %c", p_structCommon->cUserMove);
                 log_info("received use move [%c]", p_structCommon->cUserMove);
 
                 if(p_structCommon->cUserMove != 0)
@@ -373,15 +424,21 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                     switch(p_structCommon->cUserMove)
                     {
                         case 'd':
-                            break
+                            l_iCursorX--;
+                            break;
                         case 'c':
-                            break
+                            l_iCursorX++;
+                            break;
                         case 'a':
-                            break
+                            l_iCursorY--;
+                            break;
                         case 'b':
-                            break
+                            l_iCursorY++;
+                            break;
                         case 'r':
-                            break
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -415,7 +472,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 break;
             case 4:
                 l_iClientRequestInit = 0;
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "pong");
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
+                //snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "pong");
                 break;
             default:
                 log_msg("Server: unexpected starting runlevel reached");
@@ -536,6 +594,8 @@ void* clientConnectionThread(void* p_structCommonShared)
     char l_bHaveToGetStartingInformationsFromServer;
     struct in_addr l_structIpV4Addr;
     struct in6_addr l_structIpV6Addr;
+    unsigned int l_iX;
+    unsigned int l_iY;
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
@@ -544,6 +604,8 @@ void* clientConnectionThread(void* p_structCommonShared)
     l_iReturnedReadWriteValue = 0;
     l_bQuit = FALSE;
     l_bHaveToGetStartingInformationsFromServer = TRUE;
+    l_iX = 0;
+    l_iY = 0;
 
     log_msg("Socket-client: Communication thread started");
 
@@ -616,12 +678,12 @@ void* clientConnectionThread(void* p_structCommonShared)
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bQuit = TRUE;
             }
-            else if(strstr(l_cBufferTransmittedData, "pong") != NULL)
+/*            else if(strstr(l_cBufferTransmittedData, "pong") != NULL)
             {
                 strncpy(l_cBufferToSendData, "ping", strlen("ping"));
                 write(l_iSocketClient, l_cBufferToSendData, strlen(l_cBufferToSendData));
                 bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
-            }
+            }*/
             else if(strstr(l_cBufferTransmittedData, "r0001") != NULL)
             {
                 p_structCommon->iCurrentUserColor = atoi(strstr(l_cBufferTransmittedData, "r0001") + strlen("r0001"));
@@ -639,12 +701,46 @@ void* clientConnectionThread(void* p_structCommonShared)
                 p_structCommon->bAbleToRestartGame = TRUE;
                 strcpy(l_cBufferToSendData, "cli_srv ack0003");
             }
-            else if(strstr(l_cBufferTransmittedData, "ack0004") != NULL)
+/*            else if(strstr(l_cBufferTransmittedData, "ack0004") != NULL)
             {
                 if(*(strstr(l_cBufferTransmittedData, "ack0004") + strlen("ack0004") + 1) == p_structCommon->cUserMove)
                 {
                     p_structCommon->cUserMove = 0;
                 }
+            }*/
+            else if(strstr(l_cBufferTransmittedData, "ack0005") != NULL)
+            {
+                l_iX = atoi(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 1);
+                l_iY = atoi(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 6);
+
+//log_info("X%d Y%d", l_iX, l_iY);
+
+                /* If we _have_ to receive an ack for a move we have sent - verify it is OK and the good value is returned */
+                if(p_structCommon->cUserMove != 0)
+                {
+debug("step a");
+log_info("[server] %d liy %d [local] pX %d py %d", l_iX, l_iY,  p_structCommon->iLastXUsed, p_structCommon->iLastYUsed);
+                    if(l_iX == p_structCommon->iLastXUsed && l_iY == p_structCommon->iLastYUsed)
+                    {
+debug("step b");
+                        if(*(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 13) == p_structCommon->cUserMove)
+                        {
+                            p_structCommon->cUserMove = 0;
+debug("position confirmed");
+                        }
+                    }
+                /* In order to avoid execution of the next block of code */
+                l_iX = p_structCommon->iSizeX;
+                }
+
+                if(l_iX < p_structCommon->iSizeX && l_iY < p_structCommon->iSizeY)
+                {
+                    p_structCommon->cGrid[COLOR_MATRIX][l_iY][l_iX] = atoi(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 11);
+                    p_structCommon->cGrid[TEXT_MATRIX][l_iY][l_iX] = *(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 13);
+                }
+
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", p_structCommon->iLastXUsed, p_structCommon->iLastYUsed,
+                    (p_structCommon->cUserMove != 0) ? p_structCommon->cUserMove : 'Z');
             }
             else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
             {

@@ -492,6 +492,8 @@ void playGame(structProgramInfo* p_structCommon)
 	l_iMovement = 0;
 	l_iCursorX = 1;
 	l_iCursorY = 1;
+    p_structCommon->iLastXUsed = l_iCursorX;
+    p_structCommon->iLastYUsed = l_iCursorY;
     l_iCurrentSocketIndex = 0;
 	p_structCommon->iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
@@ -558,6 +560,10 @@ void playGame(structProgramInfo* p_structCommon)
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
                 /* Display wursor each time */
+                l_iMovement = 0;
+                l_iCursorX = 1;
+                l_iCursorY = 1;
+
                 displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
                 refresh();
 
@@ -593,6 +599,8 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* When the user drop a rock */
                 p_structCommon->cUserMove = 'r';
+                p_structCommon->iLastXUsed = l_iCursorX;
+                p_structCommon->iLastYUsed = l_iCursorY;
 
 				/* Put the color information in the matrix */
 				p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] =
@@ -671,8 +679,6 @@ void playGame(structProgramInfo* p_structCommon)
                 }
 			}
 		}
-
-
 	}while((l_cKey != 'q') && (l_cKey != 'Q'));		/* until q/Q pressed */
 
 

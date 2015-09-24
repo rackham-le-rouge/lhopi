@@ -195,6 +195,8 @@ typedef struct structProgramInfo_
     unsigned int  iOffsetY;
     unsigned int  iCurrentUserNumber;
     unsigned int  iCurrentUserColor;
+    unsigned int  iLastXUsed;
+    unsigned int  iLastYUsed;
     int           iServerSocket;
     int*          iClientsSockets;
     unsigned int* iClientsColor;

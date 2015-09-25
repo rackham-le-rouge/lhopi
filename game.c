@@ -498,7 +498,7 @@ void playGame(structProgramInfo* p_structCommon)
 	p_structCommon->iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
-	p_structCommon->iCurrentUserColor = 1; /* FIXME multiplayer mode incoming */
+	p_structCommon->iCurrentUserColor = enumRouge; /* Main user, or server always red. If multiplayer and client, it receive another color suring connection  */
     p_structCommon->cUserMove = 0;
 
 	/* Init the game, screen stuff etc... */

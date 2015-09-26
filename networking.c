@@ -363,13 +363,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 if(p_structCommon->cUserMove == 'r')
                 {
                     /* We have to check two times in order to avoid network issues */
-                    if(l_iVerificationIterator == 0)
-                    {
-                        l_iPotentialNewRockX = l_iCursorX;
-                        l_iPotentialNewRockY = l_iCursorY;
-                        l_iVerificationIterator++;
-                    }
-                    else if(l_iVerificationIterator == 1)
+                    if(l_iVerificationIterator == 1)
                     {
                         if(l_iPotentialNewRockX == l_iCursorX && l_iPotentialNewRockY == l_iCursorY)
                         {
@@ -379,15 +373,25 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                             drawElement(l_iCursorX + p_structCommon->iOffsetX, l_iCursorY + p_structCommon->iOffsetY,
                                         p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
                                         p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX]);
-                            loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
-                            l_iVerificationIterator = 0;
+                            loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iClientsColor[l_iCurrentSocketIndex], p_structCommon);
+                            l_iVerificationIterator++;
                             l_iPotentialNewRockX = -1;
                             l_iPotentialNewRockY = -1;
                         }
-                        l_iVerificationIterator = 0;
+                        else
+                        {
+                            l_iVerificationIterator = 0;
+                        }
                         l_iPotentialNewRockX = -1;
                         l_iPotentialNewRockY = -1;
                     }
+                    else if(l_iVerificationIterator == 0)
+                    {
+                        l_iPotentialNewRockX = l_iCursorX;
+                        l_iPotentialNewRockY = l_iCursorY;
+                        l_iVerificationIterator++;
+                    }
+
                 }
 
                 /* Prepare answer by continuing to tell the content of the grid */
@@ -401,6 +405,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 }
                 else if(p_structCommon->cUserMove == 'r')
                 {
+                    l_iVerificationIterator = 0;
                     snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c",
                                 l_iCursorX,
                                 l_iCursorY,
@@ -703,13 +708,13 @@ void* clientConnectionThread(void* p_structCommonShared)
                 {
                     if(l_iX == p_structCommon->iLastXUsed && l_iY == p_structCommon->iLastYUsed)
                     {
-                        if(*(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 13) == p_structCommon->cUserMove)
+                        if(*(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 13) == 'r')
                         {
                             p_structCommon->cUserMove = 0;
                         }
                     }
-                /* In order to avoid execution of the next block of code */
-                l_iX = p_structCommon->iSizeX;
+                    /* In order to avoid execution of the next block of code */
+                    l_iX = p_structCommon->iSizeX;
                 }
 
                 if(l_iX < p_structCommon->iSizeX && l_iY < p_structCommon->iSizeY)

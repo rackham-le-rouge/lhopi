@@ -114,7 +114,7 @@ void cleanGridLayer(unsigned int p_iLayerOrig,
     				   another function) */
                     drawElement(l_iX + p_structCommon->iOffsetX, l_iY + p_structCommon->iOffsetY,
                         p_structCommon->cGrid[TEXT_MATRIX][l_iY][l_iX],
-                        p_structCommon->iCurrentUserColor);
+                        p_iFillingValue);
                 }
             }
         }
@@ -132,12 +132,13 @@ void cleanGridLayer(unsigned int p_iLayerOrig,
   *         loop with an empty block in it.
   * @param p_iX : X position of the point to analyse
   * @param p_iY : Y position of the point to analyse
+  * @param p_iActiveUserColor : color of the current active user. Local it is hold by p_structCommon by with online games it is in the array of color in p_structCommon
   * @param p_structCommon : Struct with all program informations
   * @return 0 if there is nothing to see in this point. >0 number equals to the number of Hops needed to reach the starting
   *           point with this path. This number have to be returned to the caller, and so on until the first calling function
   *           in order to let it know the number of hops needed to complete the loop.
   */
-int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
+int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, int p_iActiveUserColor, structProgramInfo* p_structCommon)
 {
     unsigned int l_iReturned;
 
@@ -150,7 +151,7 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
     }
 
     /* Point doen't belong to the right user */
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != (signed)p_structCommon->iCurrentUserColor)
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != p_iActiveUserColor)
     {
         return 0;
     }
@@ -187,13 +188,13 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 
     /* recusive on the four other position next to this one */
     /* If one of them disvover the starting point it will return a number bigger than 6, so kill the discovery machine here */
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY - 1, p_iX, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY - 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY + 1, p_iX, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY + 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX - 1, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX + 1, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
 
     /* Nothing was discovered, return 0 */
@@ -207,11 +208,12 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
   *         the recursive function will end and we know we have an area to fill.
   * @param p_iX : X position of the point to analyse
   * @param p_iY : Y position of the point to analyse
+  * @param p_iActiveUserColor : color of the current active user. Local it is hold by p_structCommon by with online games it is in the array of color in p_structCommon
   * @param p_structCommon : Struct with all program informations
   * @return 0 if there is nothing to see in this point. 1 if we met a loop border on this side
   *   or if this point lead to all enclosed points
   */
-int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
+int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUserColor, structProgramInfo* p_structCommon)
 {
     unsigned char l_bCheckReturnValue;
 
@@ -252,22 +254,22 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
 
     /* recusive on the eight other positions next to this one */
     /* If one of them disvover the limit of the board it returns 0. On the otherwise there is only 1 returned */
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
 
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
 
     /* If the eight tested positions have returned 1, l_iCheckReturnValue == 1 */
@@ -281,10 +283,11 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
   * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
   *          block needed to make the loop
   * @param p_iCursorY : Y position (the line number). Y axis, vertical axis
+  * @param p_iActiveUserColor : color of the current active user. Local it is hold by p_structCommon by with online games it is in the array of color in p_structCommon
   * @param p_structCommon : Struct with all program informations
   * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
-int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, int p_iActiveUserColor, structProgramInfo* p_structCommon)
 {
     /* Clean the -computation- grid */
     cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
@@ -292,7 +295,7 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
 
-    if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_structCommon) > 6)
+    if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_iActiveUserColor, p_structCommon) > 6)
     {
         /* Loop found case */
         p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START_FILLING;
@@ -307,10 +310,10 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
                     continue;
                 }
     
-                if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_structCommon) == 1)
+                if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_iActiveUserColor, p_structCommon) == 1)
                 {
                     /* Area to fill found */
-                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_structCommon);
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_iActiveUserColor, p_structCommon);
                     cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
                 }
                 else
@@ -618,7 +621,7 @@ void playGame(structProgramInfo* p_structCommon)
 
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */
-                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
+                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iCurrentUserColor, p_structCommon);
 			}
 
 			default:

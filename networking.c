@@ -351,6 +351,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         {
             if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
             {
+                threadSafeLogBar(p_structCommon, ADD_LINE, "Server have closed the game.");
+                threadSafeLogBar(p_structCommon, DISPLAY, "");
+
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bExit = TRUE;
             }
@@ -532,6 +535,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         usleep(TIME_BETWEEN_TWO_REQUEST);
     }
 
+    threadSafeLogBar(p_structCommon, ADD_LINE, "User had leaved the game.");
+    threadSafeLogBar(p_structCommon, DISPLAY, "");
+
     log_msg("Socket-server: Terminal thread close normally");
     close(p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
     p_structCommon->iClientsSockets[l_iCurrentSocketIndex] = 0;
@@ -658,6 +664,9 @@ void* clientConnectionThread(void* p_structCommonShared)
         close(l_iSocketClient);
         return 0;
     }
+
+    threadSafeLogBar(p_structCommon, ADD_LINE, "Online game joined !");
+    threadSafeLogBar(p_structCommon, DISPLAY, "");
 
     /* First start init client informations */
     if(l_bHaveToGetStartingInformationsFromServer == TRUE)
@@ -803,6 +812,9 @@ void* clientConnectionThread(void* p_structCommonShared)
 
         usleep(TIME_BETWEEN_TWO_REQUEST + 10);
     }
+
+    threadSafeLogBar(p_structCommon, ADD_LINE, "Game leaved");
+    threadSafeLogBar(p_structCommon, DISPLAY, "");
 
     log_msg("Socket-client: Communication thread closed normally");
     close(l_iSocketClient);

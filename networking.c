@@ -306,6 +306,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     int l_iPotentialNewRockX;
     int l_iPotentialNewRockY;
     int l_iVerificationIterator;
+    int l_iWatchdog;
     unsigned int l_iCursorBrowseringX;
     unsigned int l_iCursorBrowseringY;
 
@@ -319,6 +320,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     l_iPotentialNewRockX = -1;
     l_iPotentialNewRockY = -1;
     l_iVerificationIterator = 0;
+    l_iWatchdog = 0;
 
     log_msg("Socket-server: Terminal thread started");
     while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] == 0)
@@ -418,14 +420,19 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                       strlen(l_cBufferToSendData));
                 bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
 
-                if(++l_iCursorBrowseringX >= p_structCommon->iSizeX)
+                l_iWatchdog = 0;
+                do
                 {
-                    l_iCursorBrowseringX = 0;
-                    if(++l_iCursorBrowseringY >= p_structCommon->iSizeY)
+                    if(++l_iCursorBrowseringX >= p_structCommon->iSizeX)
                     {
-                        l_iCursorBrowseringY = 0;
+                        l_iCursorBrowseringX = 0;
+                        if(++l_iCursorBrowseringY >= p_structCommon->iSizeY)
+                        {
+                            l_iCursorBrowseringY = 0;
+                            l_iWatchdog++;
+                        }
                     }
-                }
+                }while(p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] == enumNoir && l_iWatchdog < 2);
             }
             else if(strstr(l_cBufferTransmittedData, "cli_srv r0000") != NULL)
             {

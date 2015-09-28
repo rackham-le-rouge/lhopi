@@ -41,7 +41,15 @@ extern FILE* g_FILEOutputLogStream;
   * |client ask for init information with request r0000
   * |while(we_dont_ask_to_quit)
   * | * read part *
-  * | read data from server (send back pong, execute commands etc...)
+  * | read data from server (send back ack0005, execute commands etc...)
+  * | ack0005 replace pong - two kind of usages. If this client put a rock, this is a ack with the 'r' code inside and the X, Y received by server -for confirmation-
+  * | and on the other cases, it is a point of the server grid to put in the client grid -synchro function-
+  * | for the first case, the message is like ack0005 XXXX YYYY   r  // r is the ASCII character 'r'
+  * | for the second one, the message is like ack0005 XXXX YYYY C T  // C an integer, the color. T a character, tu put inside the text matrix. If this is a new info, put it on screen
+  * | in the first case, we send back cli_srv   r0005 XXXX YYYY A    // A is 'r' if the last action of the user was to put a rock -and if this action was not confirmed yet-
+  * | or a 'Z' for all the other cases. 'Z' means for the server "send me another synchro data in order to have the same screen as yours". If we receive 'r' with coordinates of
+  * | the last rock put on grid and the last action of the user is to put a rock, we can confirm that the server have received a good information. So reset the 'last action registered'.
+  * |
   * | read specific data from server, init values provided by request r0001, 2, 3. And send back ack0001, 2, 3.
   * | analyse data from server
   * | if server ask to close the connection, leave the loop
@@ -80,8 +88,19 @@ extern FILE* g_FILEOutputLogStream;
   *   | | | If there is any error in this thread, I/O, connection, network, etc...  clean soket value in the p_structCommon->iClientsSockets table by putting 0 in it. Close socket. Close the thread.
   *   | | | while we dont ask to leave the loop
   *   | | | | * reception from client *
-  *   | | | | receive data from socket, analyse it and execute it. pong data is sent directly in this part.
-  *   | | | | send init info to the client, when ack0003 -the last one- is received send back a pong to init ping-pong system and keep the connection working
+  *   | | | | receive data from socket, analyse it and execute it.
+  *   | | | | 
+  *   | | | | synchro mechanism - r0005 / ack0005
+  *   | | | | r0005 received : data is like r0005 XXXX YYYY A
+  *   | | | | if A == 'r' means that the client have put a rock. We store the position and we put the verification iterator to 1. If the verification iterator equals 1,
+  *   | | | |  that means we have already receivedi this position with the same request. So, put the rock in the grid, and put the iterator to 2 in order to say to
+  *   | | | |  the sender part "give the client an ack0005"
+  *   | | | | if A == 'Z' or if the iterator isn't great enought to say "we have to acknowledge the position received" we send back to the client a rock of the server's grid 
+  *   | | | | in order to make it synchronized with us. We send only colored block, in order to send only usefull informations. This have to change in order to be faster and smarter
+  *   | | | | -And after, find the next colored block, store coordinates and continue the analyse of the receive data
+  *   | | | | This section have an independant write() call it is inherited from the old ping-pong system, and makes the connection always active to send data
+  *   | | | | 
+  *   | | | | send init info to the client, when ack0003 -the last one- is received send back an empty ack0005 in order to make the new ping-pong system works and keep the connection working
   *   | | | | if exit is requiered by client, leave the loop
   *   | | | | * exit asked * in this case, exiting is asked by the user on the server-sided program
   *   | | | | ask to leave the loop
@@ -153,9 +172,11 @@ int tcpSocketServer(structProgramInfo* p_structCommon)
 {
     pthread_t l_structWaitingThreadID;
 
+    /* Introducing functions have to start the mutex system. It is the same for the client side */
     pthread_mutex_init(p_structCommon->pthreadMutex, NULL);
     p_structCommon->bMutexInitialized = TRUE;
 
+    /* start the thread and leave it alone. This system make us able to get back the hand with a listening server just behind */
     if(pthread_create(&l_structWaitingThreadID,NULL, waitingForNewConnectionsThread, (void*)p_structCommon) < 0)
     {
         log_err("Could not create the WaitingForNewConnectionsThread %s", " ");
@@ -234,11 +255,14 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     threadSafeLogBar(p_structCommon, DISPLAY, "");
 
 
-    /* Add all clients */
+    /* Wait for new clients, when there is one new connection, this function accept it and a new thread is started to handle this client 
+     * All clients are synchronized with the common structure. And in order to display log, theses functions uses mutex  */
     while((l_iSocketNewConnection = accept(l_iSocket, (struct sockaddr *) &l_structClientAddr, &l_structClientLen)))
     {
         log_msg("Socket-server: Waiting thread received a client co request. Start a new thread...");
         log_info("Socket-server: Starting thread have the index %d/%d and the Socket is %d", l_iSocketCounter + 1, MAX_CONNECTED_CLIENTS, l_iSocketNewConnection);
+
+        /* New connection is asked. Try to start a new thread */
         p_structCommon->iClientsSockets[l_iSocketCounter++] = l_iSocketNewConnection;
         if(pthread_create( &l_structThreadID , NULL ,  tcpSocketServerConnectionHander , (void*) p_structCommon) < 0)
         {
@@ -250,6 +274,8 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
             return 0;
         }
 
+        /* The thread was started, but we check if we can have a another new connection or if it was the last one.
+         * In this case, this listening thread will end now and let all the client-handler threads do their jobs */
         if(l_iSocketCounter >= MAX_CONNECTED_CLIENTS)
         {
             log_err("Socket-server: can't have more client connected %s", " ");
@@ -276,6 +302,7 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
         return 0;
     }
 
+    /* end of the listening thread, server is not able to add new clients */
     log_msg("Socket-server: Waiting thread closed normally");
     close(l_iSocket);
     pthread_mutex_destroy(p_structCommon->pthreadMutex);
@@ -322,6 +349,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     l_iVerificationIterator = 0;
     l_iWatchdog = 0;
 
+    /* Find our index in the socket table. The last socket entered have the greatest index in the table */
     log_msg("Socket-server: Terminal thread started");
     while(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] == 0)
     {
@@ -338,8 +366,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     threadSafeLogBar(p_structCommon, ADD_LINE, "New user joined");
     threadSafeLogBar(p_structCommon, DISPLAY, "");
 
+    /* Main loop for handling the connection */
     while(l_bExit != TRUE)
     {
+        /* We read, we analyse, then we write through the socket - read() is a blocking function, so the ack0005 / r0005 commands are here to stimulate the connection */
         l_iReturnedReadWriteValue = read(p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_cBufferTransmittedData, USER_COMMAND_LENGHT - 1);
 
         /************************
@@ -349,6 +379,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
          ************************/
         if(l_iReturnedReadWriteValue > 0)
         {
+            /* User on the client side ask to quit, we have to terminate this thread */
             if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, "Server have closed the game.");
@@ -357,6 +388,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bExit = TRUE;
             }
+            /* the new ping / pong system. Described in the intro help of this document */
             else if(strstr(l_cBufferTransmittedData, "r0005") != NULL)
             {
                 /* Receive position and action done by user */
@@ -370,26 +402,34 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                     /* We have to check two times in order to avoid network issues */
                     if(l_iVerificationIterator == 1)
                     {
+                        /* Put the second check in first to avoid incrementation issues. Checks position is the same than the previous one, and the action too */
                         if(l_iPotentialNewRockX == l_iCursorX && l_iPotentialNewRockY == l_iCursorY)
                         {
+                            /* Put l_iVerificationIterator to 2 in order to say to the writing part to send an ack of this rock order. It uses a specific pattern */
                             l_iVerificationIterator++;
+
+                            /* Put the rock on the server's grid - now this information is going to be scanned by other threads and sent to all clients */
                             p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] = p_structCommon->iClientsColor[l_iCurrentSocketIndex];
                             p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX] = ' ';
                             drawElement(l_iCursorX + p_structCommon->iOffsetX, l_iCursorY + p_structCommon->iOffsetY,
                                         p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
                                         p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX]);
+
+                            /* Check if the client have not completed a loop. We compute loop here and now. After, we fill the area and send data to clients */
                             loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iClientsColor[l_iCurrentSocketIndex], p_structCommon);
-                            l_iVerificationIterator++;
-                            l_iPotentialNewRockX = -1;
-                            l_iPotentialNewRockY = -1;
                         }
+                        /* Second verification failed */
                         else
                         {
                             l_iVerificationIterator = 0;
                         }
+
+                        /* Whatever, reset these values at the end of this code */
                         l_iPotentialNewRockX = -1;
                         l_iPotentialNewRockY = -1;
                     }
+                    /* If the client puts a rock, record the position. It is the first call. If the client re-send just after this message the same position,
+                     * we are going to put it on the grid. If this is another message, we delete this information */
                     else if(l_iVerificationIterator == 0)
                     {
                         l_iPotentialNewRockX = l_iCursorX;
@@ -408,6 +448,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                                 p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX],
                                 p_structCommon->cGrid[TEXT_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX]);
                 }
+                /* If we are here it is because the distant move of client was 'r' means "drop a rock", and we have passed the verifications
+                 * (two identical request to the server). So we can send an aknowlegement to the client to say "stop sending me this order, i know it" */
                 else if(p_structCommon->cUserMove == 'r')
                 {
                     l_iVerificationIterator = 0;
@@ -418,11 +460,13 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                                 'r');
                 }
 
+                /* Dedicated write function inherited from the old ping-pong system in order to make this connection always awake */
                 write(p_structCommon->iClientsSockets[l_iCurrentSocketIndex],
                       l_cBufferToSendData,
                       strlen(l_cBufferToSendData));
                 bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
 
+                /* Find the next block -case with color- on the screen to do an optimized system to send to client only interesting data. Used only when we receive a 'Z' */
                 l_iWatchdog = 0;
                 do
                 {
@@ -437,6 +481,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                     }
                 }while(p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] == enumNoir && l_iWatchdog < 2);
             }
+            /* Initialization commands, in order to send to client all informations it needs */
             else if(strstr(l_cBufferTransmittedData, "cli_srv r0000") != NULL)
             {
                 l_iClientRequestInit = 1;
@@ -453,11 +498,13 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             {
                 l_iClientRequestInit = 4;
             }
+            /* Messaging function */
             else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
             }
+            /* Unknown messages */
             else
             {
                 log_info("Socket [%d] Thread index [%d] : Received message from client [%s]", p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_iCurrentSocketIndex, l_cBufferTransmittedData);
@@ -466,6 +513,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         }
 
 
+    /* Whe n we have to initialize the client. All the request code are here. At the end, put 0 */
         switch(l_iClientRequestInit)
         {
             case 0:
@@ -481,6 +529,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             case 3:
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0003");
                 break;
+            /* At the end of the starting, initialize new ping-pong system to keep connection alive. send an empty ack0005 request to have a r0005 replied etc... */
             case 4:
                 l_iClientRequestInit = 0;
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
@@ -490,7 +539,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 break;
         }
 
-
+        /* If user wants to send a message, prepare the request */
         if(strstr(p_structCommon->sUserCommand, "sendmsg"))
         {
             strcpy(l_cBufferToSendData, "srv_cli msg ");
@@ -535,6 +584,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         usleep(TIME_BETWEEN_TWO_REQUEST);
     }
 
+    /* For any reason, the client-handling thread is out, so close the connection, send a little message and leave it */
     threadSafeLogBar(p_structCommon, ADD_LINE, "User had leaved the game.");
     threadSafeLogBar(p_structCommon, DISPLAY, "");
 
@@ -570,9 +620,11 @@ int tcpSocketClient(structProgramInfo* p_structCommon)
 {
     pthread_t l_structWaitingThreadID;
 
+    /* Introducing functions have to start the mutex system. It is the same for the server side */
     pthread_mutex_init(p_structCommon->pthreadMutex, NULL);
     p_structCommon->bMutexInitialized = TRUE;
 
+    /* start the thread and leave it alone. This system make us able to get back the hand with a listening client just behind */
     if(pthread_create(&l_structWaitingThreadID,NULL, clientConnectionThread, (void*)p_structCommon) < 0)
     {
         pthread_mutex_destroy(p_structCommon->pthreadMutex);
@@ -655,6 +707,7 @@ void* clientConnectionThread(void* p_structCommonShared)
         return 0;
     }
 
+    /* Connection part, real one ! If it success, it is ok, on the other hand, leave this thread and return a fail message */
     bcopy((char *)l_structRemoteServer->h_addr, (char *)&l_structServAddr.sin_addr.s_addr, l_structRemoteServer->h_length);
     if (connect(l_iSocketClient,(struct sockaddr *) &l_structServAddr,sizeof(l_structServAddr)) < 0)
     {
@@ -688,14 +741,18 @@ void* clientConnectionThread(void* p_structCommonShared)
          *     Receiving part
          *
          ************************/
+
+        /* We read, we analyse, then we write through the socket - read() is a blocking function, so the ack0005 / r0005 commands are here to stimulate the connection */
         l_iReturnedReadWriteValue = read(l_iSocketClient, l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         if(l_iReturnedReadWriteValue > 0)
         {
+            /* User on the server side ask to quit, we have to terminate this thread */
             if(strstr(l_cBufferTransmittedData, "cli_srv close_con") != NULL)
             {
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bQuit = TRUE;
             }
+            /* all the init request, to grab usefull data like color, number etc... */
             else if(strstr(l_cBufferTransmittedData, "r0001") != NULL)
             {
                 p_structCommon->iCurrentUserColor = atoi(strstr(l_cBufferTransmittedData, "r0001") + strlen("r0001"));
@@ -713,6 +770,7 @@ void* clientConnectionThread(void* p_structCommonShared)
                 p_structCommon->bAbleToRestartGame = TRUE;
                 strcpy(l_cBufferToSendData, "cli_srv ack0003");
             }
+            /* the new ping-pong system to have an connection alive all the time */
             else if(strstr(l_cBufferTransmittedData, "ack0005") != NULL)
             {
                 l_iX = atoi(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 1);
@@ -726,14 +784,13 @@ void* clientConnectionThread(void* p_structCommonShared)
                     {
                         if(*(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 13) == 'r')
                         {
+                            /* If this messages is the expected ack, down the flag in order to say that we expect nothing more from server */
                             p_structCommon->cUserMove = 0;
                         }
                     }
-                    /* In order to avoid execution of the next block of code */
-                    l_iX = p_structCommon->iSizeX;
                 }
-
-                if(l_iX < p_structCommon->iSizeX && l_iY < p_structCommon->iSizeY)
+                /* In this case, we just update the grid with server's information provided by 0005 cmd - and update the displayed grid */
+                else if(l_iX < p_structCommon->iSizeX && l_iY < p_structCommon->iSizeY)
                 {
                     l_iOldColor = p_structCommon->cGrid[COLOR_MATRIX][l_iY][l_iX];
                     p_structCommon->cGrid[COLOR_MATRIX][l_iY][l_iX] = atoi(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 11);
@@ -746,14 +803,18 @@ void* clientConnectionThread(void* p_structCommonShared)
                     }
                 }
 
+                /* Send a request to ask 1/ 'r' case : an ack to confirm that the server have understood we have put a rock at (iLastXUsed, iLastYUsed) coord.
+                                         2/ 'Z' case : an ack to send back another informations from its grid because we have no new-rock to confirm */
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", p_structCommon->iLastXUsed, p_structCommon->iLastYUsed,
                     (p_structCommon->cUserMove == 'r') ? p_structCommon->cUserMove : 'Z');
             }
+            /* Messaging function, we display message we just received */
             else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
             }
+            /* some UFO */
             else
             {
                 log_info("Received message from server [%s]", l_cBufferTransmittedData);
@@ -764,6 +825,7 @@ void* clientConnectionThread(void* p_structCommonShared)
 
 
 
+        /* If we want to send a message to the server (an so to evrybody */
         if(strstr(p_structCommon->sUserCommand, "sendmsg") != NULL)
         {
             strcpy(l_cBufferToSendData, "srv_cli msg ");

@@ -226,7 +226,7 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUse
 
     /* Point is a rock let by a player - behave like a limit of a loop
        Loops include all rocks */
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != enumNoir)
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] == p_iActiveUserColor)
     {
         return 1;
     }

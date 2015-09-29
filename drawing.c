@@ -153,6 +153,8 @@ void initColor(void)
 void drawTheBoardGame(structProgramInfo* p_structCommon)
 {
 	unsigned int l_iIterateur;
+    unsigned int l_iCursorY;
+    unsigned int l_iCursorX;
 
 	l_iIterateur = 0;
 
@@ -184,6 +186,17 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
  
     attroff(COLOR_PAIR(enumBoardLine));
 
+    /* Draw the whole board game */
+    for(l_iCursorY = 0; l_iCursorY < p_structCommon->iSizeY; l_iCursorY++)
+    {
+        for(l_iCursorX = 0; l_iCursorX < p_structCommon->iSizeX; l_iCursorX++)
+        {
+            drawElement(p_structCommon->iOffsetX + l_iCursorX,
+                        p_structCommon->iOffsetY + l_iCursorY,
+					    p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
+					    p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX]);
+        }
+    }
 
 
 	for (l_iIterateur = 0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
@@ -200,23 +213,27 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
   * @param p_iCursorY : Cursor row
   * @param p_cGrid : Three dimentional tabular storing all values of the game board
   */
-void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, char*** p_cGrid)
+void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, char p_bForceRedraw, char*** p_cGrid)
 {
 	/* Init of static values, in order to erase former cursor position */
 	static unsigned int l_iPreviousCursorXPosition = 0;
 	static unsigned int l_iPreviousCursorYPosition = 1;
 
 	/* Avoid redraw because it will erase the cursor and not redraw it */
-	if(!(l_iPreviousCursorXPosition == p_iCursorX && l_iPreviousCursorYPosition == p_iCursorY))
+	if(!(l_iPreviousCursorXPosition == p_iCursorX && l_iPreviousCursorYPosition == p_iCursorY) || p_bForceRedraw == TRUE)
 	{
 		/* draw the cursor */
 		drawElement(p_iCursorX + p_iOffsetX, p_iCursorY + p_iOffsetY, ' ' , enumConsole);
 
 		/* re-draw the grid on the former position of the cursor */
-		drawElement(l_iPreviousCursorXPosition + p_iOffsetX,
-			l_iPreviousCursorYPosition + p_iOffsetY,
-			p_cGrid[TEXT_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition],
-			p_cGrid[COLOR_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition]);
+        if(p_bForceRedraw != TRUE)
+        {
+            drawElement(l_iPreviousCursorXPosition + p_iOffsetX,
+                l_iPreviousCursorYPosition + p_iOffsetY,
+                p_cGrid[TEXT_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition],
+                p_cGrid[COLOR_MATRIX][l_iPreviousCursorYPosition][l_iPreviousCursorXPosition]);
+        }
+
 		/* refresh of the 'previous' values */
 		l_iPreviousCursorXPosition = p_iCursorX;
 		l_iPreviousCursorYPosition = p_iCursorY;
@@ -234,11 +251,54 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
 	unsigned int l_iIterateur;
 
 	l_iIterateur = 0;
-
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
+        usleep(2);
 		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM ) + p_iLineNumber, p_sLineContent[l_iIterateur] , enumLogLine);
 		/* We put -1 in order to take care of the scpace taken by this line */
 	}
 }
 
+/** @brief This function send back the next available color for new user
+    @param p_structCommon : Struct with all the program information
+    @return The free color, if not, -1 */
+int getNextAvailableUserColor(structProgramInfo* p_structCommon)
+{
+    unsigned int l_iIterator;
+    unsigned int l_iPossibleColor;
+    char l_bColorFound = FALSE;
+
+    l_iIterator = 0;
+    l_iPossibleColor = 0;
+
+    for(l_iPossibleColor = enumVert; l_iPossibleColor < enumVert + MAX_CONNECTED_CLIENTS; l_iPossibleColor++)
+    {
+        /* Really dirty - Cf conf.h color 7 is reserved, we have to jump over it */
+        if(l_iPossibleColor == 7)
+        {
+            l_iPossibleColor = enumBlanc;
+        }
+
+        for(l_iIterator = 0; l_iIterator < MAX_CONNECTED_CLIENTS; l_iIterator++)
+        {
+            if(p_structCommon->iClientsColor[l_iIterator] == l_iPossibleColor)
+            {
+                l_bColorFound = TRUE;
+            }
+        }
+
+        if (l_bColorFound == FALSE)
+        {
+            return l_iPossibleColor;
+        }
+        l_bColorFound = FALSE;
+
+        /* Really dirty - Cf conf.h color 7 is reserved, we have to jump over it */
+        if(l_iPossibleColor == enumBlanc)
+        {
+            l_iPossibleColor = 7;
+        }
+    }
+
+    return -1;
+}

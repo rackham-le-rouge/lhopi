@@ -32,7 +32,7 @@ FILE* g_FILEOutputLogStream;
 /** @brief  Last function executed by the program, used to release the screen */
 void killTheApp(void)
 {
-	/* Show the cursor when the program going down */
+        /* Show the cursor when the program going down */
         curs_set(1);
 
         /*  Stop the program and leave the graphic mode ! Very important ! */
@@ -187,16 +187,45 @@ int main(int argc, char** argv)
 	l_structCommon->iCol = -1;
 	l_structCommon->iOffsetX = -1;
 	l_structCommon->iOffsetY = -1;
-	l_structCommon->iSizeX = DEFAULT_GRID_LENGHT;
+	l_structCommon->bIpV4 = TRUE;
+    l_structCommon->iSizeX = DEFAULT_GRID_LENGHT;
 	l_structCommon->iSizeY = DEFAULT_GRID_HEIGHT;
     l_structCommon->sUserCommand = NULL;
+    l_structCommon->sServerAddress = NULL;
+    l_structCommon->cUserMove = 0;
+    l_structCommon->iServerSocket = 0;
+    l_structCommon->bAbleToRestartGame = FALSE;
+    l_structCommon->pthreadMutex = NULL;
+    l_structCommon->bMutexInitialized = FALSE;
+    l_structCommon->bNetworkDisconnectionRequiered = FALSE;
+    l_structCommon->iClientsSockets = (int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(int));
+    l_structCommon->iClientsColor = (unsigned int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(unsigned int));
 	l_iTmp = 0;
+
+    memset(l_structCommon->iClientsColor, 0, MAX_CONNECTED_CLIENTS);
+
+    l_structCommon->pthreadMutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+    if(l_structCommon->pthreadMutex == NULL)
+    {
+        exit(ENOMEM);
+    }
+
+    l_structCommon->sServerAddress = (char*)malloc(40 * sizeof(char));  /* max ipv6 lenght */
+    if(l_structCommon->sServerAddress == NULL)
+    {
+        exit(ENOMEM);
+    }
 
 	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)
 	{
 		/* Kill app before ncurse init, because user want to display the help message */
-		exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
 	}
+
+    if(l_structCommon->iClientsSockets == NULL)
+    {
+        exit(ENOMEM);
+    }
 
     /*  Start the graphic mode */
     initscr();
@@ -248,6 +277,15 @@ int main(int argc, char** argv)
         free(l_structCommon->cGrid[l_iIteratorLayer]);
 	}
 
+    if(l_structCommon->bMutexInitialized == TRUE)
+    {
+        pthread_mutex_destroy(l_structCommon->pthreadMutex);
+    }
+    free(l_structCommon->pthreadMutex);
+    free(l_structCommon->iClientsSockets);
+    free(l_structCommon->iClientsColor);
+    free(l_structCommon->sUserCommand);
+    free(l_structCommon->sServerAddress);
 	free(l_structCommon->cGrid);
 	free(l_cBuffer);
 	free(l_cBuffer2);

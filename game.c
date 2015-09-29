@@ -32,9 +32,6 @@ void gameInit(structProgramInfo* p_structCommon)
 	l_iIteratorLayer = 0;
 	l_iTmp = 0;
 
-	/* Preparation of the graphic part of the game */
-	drawTheBoardGame(p_structCommon);
-
    logBar(p_structCommon, ADD_LINE, "Party starting...");
    logBar(p_structCommon, DISPLAY, "");
 
@@ -64,7 +61,7 @@ void gameInit(structProgramInfo* p_structCommon)
 					l_iTmp = ' ';
 					break;
 					case LOOPALGO_MATRIX:
-					l_iTmp = ' ';
+					l_iTmp = POINT_EMPTY;
 					break;
 					default:
 					l_iTmp = 0;
@@ -74,6 +71,9 @@ void gameInit(structProgramInfo* p_structCommon)
 			}
 		}
 	}
+
+	/* Preparation of the graphic part of the game and draw board */
+    drawTheBoardGame(p_structCommon);
 }
 
 /** @brief	To clean a layer of the grid
@@ -114,7 +114,7 @@ void cleanGridLayer(unsigned int p_iLayerOrig,
     				   another function) */
                     drawElement(l_iX + p_structCommon->iOffsetX, l_iY + p_structCommon->iOffsetY,
                         p_structCommon->cGrid[TEXT_MATRIX][l_iY][l_iX],
-                        p_structCommon->iCurrentUserColor);
+                        p_iFillingValue);
                 }
             }
         }
@@ -132,12 +132,13 @@ void cleanGridLayer(unsigned int p_iLayerOrig,
   *         loop with an empty block in it.
   * @param p_iX : X position of the point to analyse
   * @param p_iY : Y position of the point to analyse
+  * @param p_iActiveUserColor : color of the current active user. Local it is hold by p_structCommon by with online games it is in the array of color in p_structCommon
   * @param p_structCommon : Struct with all program informations
   * @return 0 if there is nothing to see in this point. >0 number equals to the number of Hops needed to reach the starting
   *           point with this path. This number have to be returned to the caller, and so on until the first calling function
   *           in order to let it know the number of hops needed to complete the loop.
   */
-int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
+int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX, int p_iActiveUserColor, structProgramInfo* p_structCommon)
 {
     unsigned int l_iReturned;
 
@@ -150,7 +151,7 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
     }
 
     /* Point doen't belong to the right user */
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != (signed)p_structCommon->iCurrentUserColor)
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != p_iActiveUserColor)
     {
         return 0;
     }
@@ -187,13 +188,13 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
 
     /* recusive on the four other position next to this one */
     /* If one of them disvover the starting point it will return a number bigger than 6, so kill the discovery machine here */
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY - 1, p_iX, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY - 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY + 1, p_iX, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY + 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX - 1, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
-    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX + 1, p_structCommon);
+    l_iReturned = recursiveDiscovery(p_iHop, p_iY, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_iReturned > 6) return l_iReturned;
 
     /* Nothing was discovered, return 0 */
@@ -207,11 +208,12 @@ int recursiveDiscovery(unsigned int p_iHop, unsigned int p_iY, unsigned int p_iX
   *         the recursive function will end and we know we have an area to fill.
   * @param p_iX : X position of the point to analyse
   * @param p_iY : Y position of the point to analyse
+  * @param p_iActiveUserColor : color of the current active user. Local it is hold by p_structCommon by with online games it is in the array of color in p_structCommon
   * @param p_structCommon : Struct with all program informations
   * @return 0 if there is nothing to see in this point. 1 if we met a loop border on this side
   *   or if this point lead to all enclosed points
   */
-int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInfo* p_structCommon)
+int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUserColor, structProgramInfo* p_structCommon)
 {
     unsigned char l_bCheckReturnValue;
 
@@ -224,7 +226,7 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
 
     /* Point is a rock let by a player - behave like a limit of a loop
        Loops include all rocks */
-    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] != enumNoir)
+    if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] == p_iActiveUserColor)
     {
         return 1;
     }
@@ -252,22 +254,22 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
 
     /* recusive on the eight other positions next to this one */
     /* If one of them disvover the limit of the board it returns 0. On the otherwise there is only 1 returned */
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
 
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX + 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX + 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY - 1, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
-    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX - 1, p_structCommon);
+    l_bCheckReturnValue &= recursiveEmptyFilling(p_iY + 1, p_iX - 1, p_iActiveUserColor, p_structCommon);
     if(l_bCheckReturnValue == 0) return 0;
 
     /* If the eight tested positions have returned 1, l_iCheckReturnValue == 1 */
@@ -281,10 +283,11 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, structProgramInf
   * @param p_iCursorX : X position (position in a text line in the screen) supposed to be the last
   *          block needed to make the loop
   * @param p_iCursorY : Y position (the line number). Y axis, vertical axis
+  * @param p_iActiveUserColor : color of the current active user. Local it is hold by p_structCommon by with online games it is in the array of color in p_structCommon
   * @param p_structCommon : Struct with all program informations
   * @return EXIT_FAILURE if there is no loop completed. EXIT_SUCCESS in case of loop with at least one block filled
   */
-int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgramInfo* p_structCommon)
+int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, int p_iActiveUserColor, structProgramInfo* p_structCommon)
 {
     /* Clean the -computation- grid */
     cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
@@ -292,50 +295,39 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, structProgr
     /* Set the starting point of the forsaken loop */
     p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START;
 
-    if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_structCommon) > 6)
+    if(recursiveDiscovery(0, p_iCursorY, p_iCursorX, p_iActiveUserColor, p_structCommon) > 6)
     {
-        /* found */
-        logBar(p_structCommon, ADD_LINE, "Loop found");
-        logBar(p_structCommon, DISPLAY, "");
+        /* Loop found case */
+        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START_FILLING;
 
-
-
-
-    p_structCommon->cGrid[LOOPALGO_MATRIX][p_iCursorY][p_iCursorX] = POINT_START_FILLING;
-
-    for(p_iCursorY = 0; p_iCursorY < p_structCommon->iSizeY; p_iCursorY++)
-    { 
-        for(p_iCursorX = 0; p_iCursorX < p_structCommon->iSizeX; p_iCursorX++)
+        for(p_iCursorY = 0; p_iCursorY < p_structCommon->iSizeY; p_iCursorY++)
         {
-            /* We are on an already busy matrix, jump over it */
-            if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][p_iCursorX] != enumNoir)
+            for(p_iCursorX = 0; p_iCursorX < p_structCommon->iSizeX; p_iCursorX++)
             {
-                continue;
-            }
+                /* We are on an already busy matrix, jump over it */
+                if(p_structCommon->cGrid[COLOR_MATRIX][p_iCursorY][p_iCursorX] != enumNoir)
+                {
+                    continue;
+                }
     
-            if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_structCommon) == 1)
-            {
-                /* found */
-                logBar(p_structCommon, ADD_LINE, "Area to fill found");
-                logBar(p_structCommon, DISPLAY, "");
-                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_structCommon->iCurrentUserColor, p_structCommon);
-                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
+                if(recursiveEmptyFilling(p_iCursorY, p_iCursorX, p_iActiveUserColor, p_structCommon) == 1)
+                {
+                    /* Area to fill found */
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_iActiveUserColor, p_structCommon);
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
+                }
+                else
+                {
+                }
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
             }
-            else
-            {
-            }
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
-            cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
         }
-    }
-
-
     }
     else
     {
-        logBar(p_structCommon, ADD_LINE, "NO Loop found");
-        logBar(p_structCommon, DISPLAY, "");
+        /* No loop found case */
     }
 
     return EXIT_FAILURE; 
@@ -350,9 +342,16 @@ void userCommandGetter(structProgramInfo* p_structCommon)
 {
     if(p_structCommon->sUserCommand != NULL)
     {
-        log_err("Already a command here. free() needed %lx", (long unsigned int)p_structCommon->sUserCommand);
+        free(p_structCommon->sUserCommand);
+        p_structCommon->sUserCommand = NULL;
     }
     p_structCommon->sUserCommand = (char*)malloc((USER_COMMAND_LENGHT + 1) * sizeof(char));
+    if(p_structCommon->sUserCommand == NULL)
+    {
+        log_err("No more memory available... End%s", " ");
+        exit(ENOMEM);
+    }
+    bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT + 1);
 
     /* ncurses options to display input & display the cursor */
     echo();
@@ -360,7 +359,7 @@ void userCommandGetter(structProgramInfo* p_structCommon)
 
     drawElement(0, p_structCommon->iRow - 2, ':', enumLogLine);
     drawElement(1, p_structCommon->iRow - 2, '>', enumLogLine);
-    mvscanw(p_structCommon->iRow - 2, 3,"%s", p_structCommon->sUserCommand);
+    mvscanw(p_structCommon->iRow - 2, 3,"%[^\n]", p_structCommon->sUserCommand);
 
     /* ncurses options to undo modifications */
     curs_set(0);
@@ -375,10 +374,20 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 {
     /* extract the command from the command line */
     char l_sFirstWord[64];          /* Sometimes we have to set limits to the fools */
+    char l_sParameter[40];          /* IPV6 mac lenght = 39 */
+    char l_sMessageToDisplay[USER_COMMAND_LENGHT]; 
     unsigned int l_iIterator;
+    unsigned int l_iIterator2;
+    int l_iReturned;
+    unsigned int l_iWatchdog;
 
     l_iIterator = 0;
+    l_iReturned = 0;
+    l_iIterator2 = 0;
+    l_iWatchdog = 0;
+    bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
+    /* Command finding in the user provided string */
     while(p_structCommon->sUserCommand[l_iIterator] <= 'z' && p_structCommon->sUserCommand[l_iIterator] >='a')
     {
         l_sFirstWord[l_iIterator] = p_structCommon->sUserCommand[l_iIterator];
@@ -386,8 +395,87 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     l_sFirstWord[l_iIterator] = '\0';
 
-    UNUSED(l_sFirstWord);
+    /* Jump over spaces */
+    while(p_structCommon->sUserCommand[l_iIterator] == ' ')
+    {
+        l_iIterator++;
+    }
 
+    /* Take the parameter */
+    while(p_structCommon->sUserCommand[l_iIterator] != ' ' && p_structCommon->sUserCommand[l_iIterator] != '\0')
+    {
+        l_sParameter[l_iIterator2++] = p_structCommon->sUserCommand[l_iIterator];
+        l_iIterator++;
+    }
+    l_sParameter[l_iIterator2] = '\0';
+
+    /* Command execution */
+    if(!strncmp(l_sFirstWord, "bemaster", strlen("bemaster")))
+    {
+        strcpy(l_sMessageToDisplay, "Gonna be the game server");
+        l_iReturned = tcpSocketServer(p_structCommon);
+        if(l_iReturned != 0)
+        {
+            log_err("Init of server failed. Abort the order%s", " ");
+            strcpy(l_sMessageToDisplay, "Server mode failed to start...");
+        }
+    }
+    else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
+    {
+        if(strlen(l_sParameter) == 0)
+        {
+            strcpy(l_sParameter, "127.0.0.1");
+            log_msg("User gives no parameter, but need one. Thus put default one. 127.0.0.1");
+        }
+
+        strcpy(p_structCommon->sServerAddress, l_sParameter);
+        if(strlen(l_sParameter) < 16)
+        {
+            p_structCommon->bIpV4 = TRUE;
+        }
+        else
+        {
+            p_structCommon->bIpV4 = FALSE;
+        }
+        tcpSocketClient(p_structCommon);
+
+        /* Wait until client thread had receive all informations from the server */
+        do
+        {
+            usleep(1000);
+            l_iWatchdog++;
+        }while(p_structCommon->bAbleToRestartGame == FALSE && l_iWatchdog < 1000);
+
+        if(l_iWatchdog >= 1000)
+        {
+            log_msg("Timeout during client connection to the server.");
+            strcpy(l_sMessageToDisplay, "Timeout during client connection to the server");
+        }
+        else
+        {
+            /* Reset the board */
+            cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
+            cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            drawTheBoardGame(p_structCommon);
+        }
+    }
+    else if(!strncmp(l_sFirstWord, "sendmsg", strlen("sendmsg")))
+    {
+        /* The active thread is going to handle and purge the buffer */
+        bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
+    }
+    else
+    {
+        /* Other command */
+        strcpy(l_sMessageToDisplay, "Unrecognized command");
+    }
+
+    if(strlen(l_sMessageToDisplay) > 0)
+    {
+        logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
+        logBar(p_structCommon, DISPLAY, "");
+    }
 }
 
 
@@ -400,17 +488,21 @@ void playGame(structProgramInfo* p_structCommon)
     unsigned int l_iWatchdog;
 	unsigned int l_iCursorX;
 	unsigned int l_iCursorY;
-	unsigned int l_iMovement;	/* store the wanted move, if impossible this variable
-					  allow the program to go back */
+    unsigned int l_iMovement;	/* store the wanted move, if impossible this variable */
+    unsigned int l_iCurrentSocketIndex;		/* allow the program to go back */
 
 	l_cKey = 0;
 	l_iMovement = 0;
 	l_iCursorX = 1;
 	l_iCursorY = 1;
+    p_structCommon->iLastXUsed = l_iCursorX;
+    p_structCommon->iLastYUsed = l_iCursorY;
+    l_iCurrentSocketIndex = 0;
 	p_structCommon->iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
 
-	p_structCommon->iCurrentUserColor = 1; /* FIXME multiplayer mode incoming */
+	p_structCommon->iCurrentUserColor = enumRouge; /* Main user, or server always red. If multiplayer and client, it receive another color suring connection  */
+    p_structCommon->cUserMove = 0;
 
 	/* Init the game, screen stuff etc... */
 	gameInit(p_structCommon);
@@ -418,7 +510,7 @@ void playGame(structProgramInfo* p_structCommon)
 	do
 	{
 		/* Display wursor each time */
-		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, p_structCommon->cGrid);
+		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, FALSE, p_structCommon->cGrid);
 		refresh();
 
 		l_cKey = getch();
@@ -430,6 +522,7 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* LEFT */
 				l_iCursorX = (l_iCursorX < 1) ? p_structCommon->iSizeX - 1 : l_iCursorX - 1;
+                p_structCommon->cUserMove = 'd';
 				l_iMovement = DIRECTION_LEFT;
 				break;
 			}
@@ -438,6 +531,7 @@ void playGame(structProgramInfo* p_structCommon)
 				/* RIGHT */
 				l_iCursorX = (l_iCursorX > p_structCommon->iSizeX - 2) ?
                     0 : l_iCursorX + 1;
+                p_structCommon->cUserMove = 'c';
 				l_iMovement = DIRECTION_RIGHT;
 				break;
 			}
@@ -445,6 +539,7 @@ void playGame(structProgramInfo* p_structCommon)
 			{
 				/* UP */
 				l_iCursorY = (l_iCursorY < 1) ? p_structCommon->iSizeY - 1 : l_iCursorY - 1;
+                p_structCommon->cUserMove = 'a';
 				l_iMovement = DIRECTION_UP;
 				break;
 			}
@@ -453,6 +548,7 @@ void playGame(structProgramInfo* p_structCommon)
 				/* DOWN */
 				l_iCursorY = (l_iCursorY > p_structCommon->iSizeY - 2) ?
                     0 : l_iCursorY + 1;
+                p_structCommon->cUserMove = 'b';
 				l_iMovement = DIRECTION_DOWN;
 				break;
 			}
@@ -466,16 +562,48 @@ void playGame(structProgramInfo* p_structCommon)
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
-                free(p_structCommon->sUserCommand);
-                p_structCommon->sUserCommand = NULL;
+                /* Display wursor each time */
+                l_iMovement = 0;
+                l_iCursorX = 1;
+                l_iCursorY = 1;
+
+                displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
+                refresh();
 
                 /* Clean the screen */
                 logBar(p_structCommon, DISPLAY, "");
                 break;
             }
+            case 'q':
+            case 'Q':
+            {
+                p_structCommon->bNetworkDisconnectionRequiered = TRUE;
+
+                /* Started threads have to down this flag -- bMutexInitialized means we have at least one thread started */
+                while(p_structCommon->bNetworkDisconnectionRequiered == TRUE &&
+                      p_structCommon->bMutexInitialized == TRUE)
+                {
+                    usleep(TIME_BETWEEN_TWO_REQUEST);
+                    for(l_iCurrentSocketIndex = 0; l_iCurrentSocketIndex < MAX_CONNECTED_CLIENTS ; l_iCurrentSocketIndex++)
+                    {
+                        if(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] != 0)
+                        {
+                            break;
+                        }
+                    }
+                    if(l_iCurrentSocketIndex >= MAX_CONNECTED_CLIENTS - 1)
+                    {
+                        break;
+                    }
+                }   
+                break;
+            }
 			case ' ':
 			{
 				/* When the user drop a rock */
+                p_structCommon->cUserMove = 'r';
+                p_structCommon->iLastXUsed = l_iCursorX;
+                p_structCommon->iLastYUsed = l_iCursorY;
 
 				/* Put the color information in the matrix */
 				p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX] =
@@ -493,7 +621,7 @@ void playGame(structProgramInfo* p_structCommon)
 
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */
-                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon);
+                loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iCurrentUserColor, p_structCommon);
 			}
 
 			default:
@@ -554,8 +682,6 @@ void playGame(structProgramInfo* p_structCommon)
                 }
 			}
 		}
-
-
 	}while((l_cKey != 'q') && (l_cKey != 'Q'));		/* until q/Q pressed */
 
 

@@ -17,16 +17,21 @@
  * @author      Jerome GRARD
  */
 
-
+#define _BSD_SOURCE                     /* Add that to have usleep in unistd.h*/
 #include <string.h>
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
+#include <strings.h>
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
-
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
+#include <arpa/inet.h>
+#include <pthread.h>
 
 /*   Avaiable colors    *
 
@@ -57,6 +62,9 @@
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
+#define TCP_PORT                        5555
+#define MAX_CONNECTED_CLIENTS           6  /* When  program is a server, max clients connected to him | 8 colors available, but there is black and the current user color */
+#define TIME_BETWEEN_TWO_REQUEST        20000   /* FIXME why can i go over somthing like 20000 without lost the capability of sending messages */
 
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
@@ -101,6 +109,8 @@ typedef enum
 #define DIRECTION_LEFT                  2
 #define DIRECTION_RIGHT                 3
 
+#define h_addr h_addr_list[0]           /* for backward compatibility */
+
 
 typedef enum
 {
@@ -136,22 +146,47 @@ typedef enum
   * @var structProgramInfo_::iCol
   * Member 'iCol' contains number of colonne in the screen
   * @var structProgramInfo_::iRow
+  * Member 'iOffsetX' Beginning of the grid on the axis X
+  * @var structProgramInfo_::iOffsetX
+  * Member 'iOffsetY' Beginning of the grid on the axis Y
+  * @var structProgramInfo_::iOffsetY
+  * Member 'iServerSocket' For a client, socket value of the server. Returned by open() on the server address
+  * @var structProgramInfo_::iServerSocket
+  * Member 'iClientsSockets' For a server, array of the soket value (returned by accept()) of all the remote clients
+  * @var structProgramInfo_::iClientsSockets
+  * Member 'bIpV4' Boolean. For a client, 1 means server address is provided in IPV4, 0 means IPV6.
+  * @var structProgramInfo_::bIpV4
+  * Member 'bMutexInitialized' For client and server, means that multithread is started and mutex was initialized. Thus, we have to release it at the end of the execution
+  * @var structProgramInfo_::bMutexInitialized
+  * Member 'bNetworkDisconnectionRequiered'  For client and server, means that the user have asked to terminate the network connection. Threads receive this message, close the active connection, close the thread. For a client, after that, put FALSE in this value. For a server, because there is many threads, we can't do that. So the caller have to pool the remote client socket list, and wait for all threads put 0 in their cases.
+  * @var structProgramInfo_::bNetworkDisconnectionRequiered
+  * Member 'sUserCommand' Store the command entred by user in order to share it with sending / receiving thread
+  * @var structProgramInfo_::sUserCommand
+  * Member 'sServerAddress' For a client, this is the parameter provided by user as an address for the remote server. IPV4 / IPV6 is automatically decided by the lenght of the address
+  * @var structProgramInfo_::sServerAddress
   * Member 'iRow' contains number of row in the screen
   * @var structProgramInfo_::cGrid
   * Member 'cGrid' contains the grid. For each position in the matrix, grid store all informations (color etc...)
   * @var structProgramInfo_::iSizeX
   * Member 'iSizeX' contains height of the board game
+  * @var structProgramInfo_::bAbleToRestartGame
+  * Member 'bAbleToRestartGame' this flag is set to FALSE until cleaning function have finish and put TRUE. Thus the game restart
   * @var structProgramInfo_::iSizeY
   * Member 'iSizeY' contains height of the board game
   * @var structProgramInfo_::iCurrentUserNumber
   * Member 'iCurrentUserNumber' contains the number of the local user of the game
   * @var structProgramInfo_::iCurrentUserColor
-  * Member 'iCurrentUserNumber' contains the rock color of the current user
+  * Member 'iCurrentUserColor' contains the rock color of the current user
+  * @var structProgramInfo_::cUserMove
+  * Member 'cUserMove' Last user move, used also as a flag. When this value goes back to 0 means that the user move have been transmitted to the server
+  * @var structProgramInfo_::iClientsColor
+  * Member 'iClientsColor' Table containing all the clients color when you are on the server side of the app
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
 typedef struct structProgramInfo_
 {
+    pthread_mutex_t*    pthreadMutex;
     unsigned int  iCol;
     unsigned int  iRow;
     unsigned int  iSizeX;
@@ -160,9 +195,20 @@ typedef struct structProgramInfo_
     unsigned int  iOffsetY;
     unsigned int  iCurrentUserNumber;
     unsigned int  iCurrentUserColor;
+    unsigned int  iLastXUsed;
+    unsigned int  iLastYUsed;
+    int           iServerSocket;
+    int*          iClientsSockets;
+    unsigned int* iClientsColor;
+    char    bIpV4;
+    char    bMutexInitialized;
+    char    bNetworkDisconnectionRequiered;
+    char    bAbleToRestartGame;
+    char    cUserMove;
     char*   sUserCommand;
+    char*   sServerAddress;
     char*** cGrid;
-    unsigned char padding[6];
+    unsigned char padding[1];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 
@@ -173,6 +219,7 @@ typedef struct structProgramInfo_
 #include "debug.h"
 #include "game.h"
 #include "drawing.h"
+#include "networking.h"
 #include "main.h"
 
 

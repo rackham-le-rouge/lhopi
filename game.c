@@ -419,6 +419,14 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             log_err("Init of server failed. Abort the order%s", " ");
             strcpy(l_sMessageToDisplay, "Server mode failed to start...");
         }
+        else
+        {
+            /* Reset the board */
+            cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
+            cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            drawTheBoardGame(p_structCommon);
+        }
     }
     else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
     {
@@ -562,10 +570,6 @@ void playGame(structProgramInfo* p_structCommon)
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
-                /* Display wursor each time */
-                l_iMovement = 0;
-                l_iCursorX = 1;
-                l_iCursorY = 1;
 
                 displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
                 refresh();

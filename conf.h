@@ -61,6 +61,7 @@
 #define COLOR_MATRIX                    0   /* The matrix 'layer'dedicated to store color */
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
+#define SYNC_MATRIX                     3   /* The matrix 'layer' used by the synchronisation algo in server part during online game to know block to synch with clients */
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 #define TCP_PORT                        5555
 #define MAX_CONNECTED_CLIENTS           6  /* When  program is a server, max clients connected to him | 8 colors available, but there is black and the current user color */
@@ -83,6 +84,7 @@ typedef enum
     POINT_EXPLORED_FILLING,
     POINT_START_EXPLORED,
     POINT_START_EXPLORED_FILLING,
+    POINT_TO_SYNC,
     POINT_ALL
 }g_enumKindOfPoints;
 

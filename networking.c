@@ -415,6 +415,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                                         p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
                                         p_structCommon->cGrid[COLOR_MATRIX][l_iCursorY][l_iCursorX]);
 
+                            /* Registration of the new point. Have to be synchcronized quicly with clients */
+                            p_structCommon->cGrid[SYNC_MATRIX][l_iCursorY][l_iCursorX] = POINT_TO_SYNC;
+
                             /* Check if the client have not completed a loop. We compute loop here and now. After, we fill the area and send data to clients */
                             loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iClientsColor[l_iCurrentSocketIndex], p_structCommon);
                         }
@@ -447,6 +450,14 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                                 l_iCursorBrowseringY,
                                 p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX],
                                 p_structCommon->cGrid[TEXT_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX]);
+                    if(p_structCommon->cGrid[SYNC_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] >= POINT_TO_SYNC)
+                    {
+                        p_structCommon->cGrid[SYNC_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX]++;
+                    }
+                    if(p_structCommon->cGrid[SYNC_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] > POINT_TO_SYNC + 2 * MAX_CONNECTED_CLIENTS)
+                    {
+                        p_structCommon->cGrid[SYNC_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] = POINT_EMPTY;
+                    }
                 }
                 /* If we are here it is because the distant move of client was 'r' means "drop a rock", and we have passed the verifications
                  * (two identical request to the server). So we can send an aknowlegement to the client to say "stop sending me this order, i know it" */
@@ -479,7 +490,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                             l_iWatchdog++;
                         }
                     }
-                }while(p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] == enumNoir && l_iWatchdog < 2);
+                }while((p_structCommon->cGrid[SYNC_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] < POINT_TO_SYNC && l_iWatchdog < 2) ||
+                       (p_structCommon->cGrid[COLOR_MATRIX][l_iCursorBrowseringY][l_iCursorBrowseringX] == enumNoir && l_iWatchdog == 2));
             }
             /* Initialization commands, in order to send to client all informations it needs */
             else if(strstr(l_cBufferTransmittedData, "cli_srv r0000") != NULL)

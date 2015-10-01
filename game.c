@@ -42,9 +42,9 @@ void gameInit(structProgramInfo* p_structCommon)
        function.
 	   --> The second layer is the text layer, in order to put special character for each user
 	*/
-	p_structCommon->cGrid = (char***)malloc(3 * sizeof(char**));
+	p_structCommon->cGrid = (char***)malloc(4 * sizeof(char**));
 
-	for(l_iIteratorLayer = 0; l_iIteratorLayer < 3 ; l_iIteratorLayer++)
+	for(l_iIteratorLayer = 0; l_iIteratorLayer < 4 ; l_iIteratorLayer++)
 	{
 		p_structCommon->cGrid[l_iIteratorLayer] = (char**)malloc(p_structCommon->iSizeY * sizeof(char*));
 		for(l_iIterator = 0 ; l_iIterator < p_structCommon->iSizeY ; l_iIterator++)
@@ -61,6 +61,9 @@ void gameInit(structProgramInfo* p_structCommon)
 					l_iTmp = ' ';
 					break;
 					case LOOPALGO_MATRIX:
+					l_iTmp = POINT_EMPTY;
+					break;
+					case SYNC_MATRIX:
 					l_iTmp = POINT_EMPTY;
 					break;
 					default:
@@ -315,6 +318,7 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, int p_iActi
                     /* Area to fill found */
                     cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_iActiveUserColor, p_structCommon);
                     cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, SYNC_MATRIX, POINT_TO_SYNC, p_structCommon);
                 }
                 else
                 {
@@ -425,6 +429,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
             cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
             cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
             drawTheBoardGame(p_structCommon);
         }
     }
@@ -465,6 +470,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
             cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
             cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
             drawTheBoardGame(p_structCommon);
         }
     }
@@ -616,6 +622,9 @@ void playGame(structProgramInfo* p_structCommon)
 				/* Put the text information in the matrix */
 				p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX] =
 					' ';
+
+                /* declare this point to be synchronized with all clients */
+                p_structCommon->cGrid[SYNC_MATRIX][l_iCursorY][l_iCursorX] = POINT_TO_SYNC;
 
                 /* Draw the block of the current user (the other blocks are draw by
                     another function) */

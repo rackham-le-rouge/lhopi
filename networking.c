@@ -503,6 +503,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
+
+                /* Empty answer to avoid stopping ping-pong and then block read() of client */
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
             }
             /* Unknown messages */
             else
@@ -575,8 +578,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
             if(l_iReturnedReadWriteValue <= 0)
             {
-                log_msg("Socket-server: Terminal thread closed on writing error");
-                l_bExit = TRUE;
+                log_msg("Socket-server: Terminal thread writing error");
             }
             bzero(l_cBufferToSendData, USER_COMMAND_LENGHT);
         }
@@ -813,11 +815,17 @@ void* clientConnectionThread(void* p_structCommonShared)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
+
+                /* Empty answer to avoid stoping ping-pong and then block read() of the server */
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, 0, 'Z');
             }
             /* some UFO */
             else
             {
                 log_info("Received message from server [%s]", l_cBufferTransmittedData);
+
+                /* Empty answer to avoid stoping ping-pong and then block read() of the server */
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, 0, 'Z');
             }
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }

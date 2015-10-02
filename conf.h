@@ -128,7 +128,14 @@ typedef enum
     enumConsole =   12,
     enumLine =      13,
     enumLogLine =   14,
-    enumBoardLine = 15
+    enumBoardLine = 15,
+    enumLetterRed    = 21,
+    enumLetterGreen  = 22,
+    enumLetterYellow = 23,
+    enumLetterBlue   = 24,
+    enumLetterPurple = 25,
+    enumLetterCyan   = 26,
+    enumLetterWhite  = 27
 }g_enumJeuxDeCouleursDispo;
 
 

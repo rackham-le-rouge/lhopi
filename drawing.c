@@ -129,7 +129,15 @@ void initColor(void)
         init_pair(enumLine, CONSOLE_LINE_COLOR, COLOR_BLACK);
         init_pair(enumLogLine, CONSOLE_LOGTEXT_COLOR, COLOR_BLACK);
         init_pair(enumBoardLine, CONSOLE_BOARDLINE_COLOR, COLOR_BLACK);
-#else
+
+        init_pair(enumLetterRed, COLOR_RED, COLOR_BLACK);
+        init_pair(enumLetterGreen, COLOR_GREEN, COLOR_BLACK);
+        init_pair(enumLetterYellow, COLOR_YELLOW, COLOR_BLACK);
+        init_pair(enumLetterBlue, COLOR_BLUE, COLOR_BLACK);
+        init_pair(enumLetterPurple, COLOR_MAGENTA, COLOR_BLACK);
+        init_pair(enumLetterCyan, COLOR_CYAN, COLOR_BLACK);
+        init_pair(enumLetterWhite, COLOR_WHITE, COLOR_BLACK);
+ #else
         init_pair(enumNoir, COLOR_BLACK, COLOR_BLACK);
         init_pair(enumRouge, COLOR_RED, COLOR_BLACK);
         init_pair(enumVert, COLOR_GREEN, COLOR_BLACK);
@@ -244,17 +252,59 @@ void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned in
 
 
 /** @brief This function have to draw the board game taking care of the size of the screen
+  * Colors available. Usage : "there is a ##5string for test##7 to show colors"
+  * Here, "there is a " is printed with the default color for the log lines, "string for test" is printed with
+  * the color 5, Cf g_enumJeuxDeCouleursDispo to see all available colors. ##7 reset color to the default one,
+  * and then the last part of the string is printed with the default log line colors.
   * @param p_structCommon : Struct with all the program information
   */
 void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, char* p_sLineContent)
 {
 	unsigned int l_iIterateur;
+    unsigned int l_iX;
+    int     l_iColor = enumLogLine;
+    char    l_sBuffer[USER_COMMAND_LENGHT + 3];
 
+    l_iX = 0;
 	l_iIterateur = 0;
+    bzero(l_sBuffer, USER_COMMAND_LENGHT + 3);
+    strcpy(l_sBuffer, p_sLineContent);
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
         usleep(2);
-		drawElement(l_iIterateur, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM ) + p_iLineNumber, p_sLineContent[l_iIterateur] , enumLogLine);
+        /* New color detected */
+        if(l_sBuffer[l_iIterateur] == '#' && l_sBuffer[l_iIterateur + 1] == '#')
+        {
+            l_iColor = atoi(l_sBuffer + l_iIterateur + 2);
+            /* one or two figures possible / have to get a rid of them */
+            if(l_iColor < 10)
+            {
+                l_sBuffer[l_iIterateur + 1] = '^';
+            }
+            else
+            {
+                l_sBuffer[l_iIterateur + 1] = '^';
+                l_sBuffer[l_iIterateur + 2] = '^';
+            }
+            /* Reserved color for the rest of the program. Here, used to reset the log color */
+            if(l_iColor == 7) l_iColor = enumLogLine;
+        }
+        /* Useless character. Used to stuff the line */
+        else if(l_sBuffer[l_iIterateur] == '^')
+        {
+            /* do nothing */
+        }
+        /* When we are on the second # of a color redifinition */
+        else if(l_sBuffer[l_iIterateur] == '#' && l_sBuffer[l_iIterateur + 1] != '#')
+        {
+            /* do nothing */
+        }
+        /* When we are on a normal case */
+        else if((l_iIterateur > 0 && l_sBuffer[l_iIterateur - 1] != '#' && l_sBuffer[l_iIterateur - 1] != '^') ||       /* On any char of the string */
+                (l_iIterateur == 0 && l_sBuffer[l_iIterateur] != '#' && l_sBuffer[l_iIterateur] != '^'))                /* On the first char */
+        {
+		    drawElement(l_iX++, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM ) + p_iLineNumber, p_sLineContent[l_iIterateur] , l_iColor);
+        }
 		/* We put -1 in order to take care of the scpace taken by this line */
 	}
 }

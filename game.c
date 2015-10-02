@@ -236,7 +236,8 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUse
 
     /* We alreadu know this point */
     if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED_FILLING ||
-      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START_EXPLORED_FILLING)
+      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START_EXPLORED_FILLING ||
+      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED_NOT_FILLING)
     {
         return 1;
     }
@@ -244,7 +245,14 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUse
     /* There is a new point. Mark visited before doing anything */
     if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START_FILLING)
     {
-        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_FILLING;
+        if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] == enumNoir)
+        {
+            p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_FILLING;
+        }
+        else
+        {
+            p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_NOT_FILLING;
+        }
     }
     else
     {
@@ -325,6 +333,7 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, int p_iActi
                 }
                 cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
                 cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_NOT_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
                 cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
             }
         }

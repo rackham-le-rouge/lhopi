@@ -557,8 +557,13 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         /* If user wants to send a message, prepare the request */
         if(strstr(p_structCommon->sUserCommand, "sendmsg"))
         {
-            strcpy(l_cBufferToSendData, "srv_cli msg ");
-            strcat(l_cBufferToSendData, strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
+            snprintf(l_cBufferToSendData,
+                            USER_COMMAND_LENGHT,
+                            "srv_cli msg ##%d%s:##%d %s",
+                            p_structCommon->iCurrentUserColor + 20,
+                            p_structCommon->sUserName,
+                            7,
+                            strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
 
             threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferToSendData, "srv_cli msg ") + strlen("srv_cli msg "));
             threadSafeLogBar(p_structCommon, DISPLAY, "");
@@ -848,8 +853,13 @@ void* clientConnectionThread(void* p_structCommonShared)
         /* If we want to send a message to the server (an so to evrybody */
         if(strstr(p_structCommon->sUserCommand, "sendmsg") != NULL)
         {
-            strcpy(l_cBufferToSendData, "srv_cli msg ");
-            strcat(l_cBufferToSendData, strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
+            snprintf(l_cBufferToSendData,
+                            USER_COMMAND_LENGHT,
+                            "srv_cli msg ##%d%s:##%d %s",
+                            p_structCommon->iCurrentUserColor + 20,
+                            p_structCommon->sUserName,
+                            7,
+                            strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
 
             threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferToSendData, "srv_cli msg ") + strlen("srv_cli msg "));
             threadSafeLogBar(p_structCommon, DISPLAY, "");

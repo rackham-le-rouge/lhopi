@@ -378,7 +378,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 {
     /* extract the command from the command line */
     char l_sFirstWord[64];          /* Sometimes we have to set limits to the fools */
-    char l_sParameter[40];          /* IPV6 mac lenght = 39 */
+    char l_sParameter[PARAMETER_MAX_LENGHT];          /* IPV6 mac lenght = 39 */
     char l_sMessageToDisplay[USER_COMMAND_LENGHT]; 
     unsigned int l_iIterator;
     unsigned int l_iIterator2;
@@ -478,6 +478,10 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     {
         /* The active thread is going to handle and purge the buffer */
         bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
+    }
+    else if(!strncmp(l_sFirstWord, "nick", strlen("nick")))
+    {
+        strcpy(p_structCommon->sUserName, l_sParameter);
     }
     else
     {

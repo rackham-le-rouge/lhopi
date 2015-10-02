@@ -198,6 +198,7 @@ int main(int argc, char** argv)
     l_structCommon->pthreadMutex = NULL;
     l_structCommon->bMutexInitialized = FALSE;
     l_structCommon->bNetworkDisconnectionRequiered = FALSE;
+    l_structCommon->sUserName = (char*)malloc(PARAMETER_MAX_LENGHT * sizeof(char));
     l_structCommon->iClientsSockets = (int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(int));
     l_structCommon->iClientsColor = (unsigned int*)malloc(MAX_CONNECTED_CLIENTS * sizeof(unsigned int));
 	l_iTmp = 0;
@@ -225,6 +226,16 @@ int main(int argc, char** argv)
     if(l_structCommon->iClientsSockets == NULL)
     {
         exit(ENOMEM);
+    }
+
+    if(l_structCommon->sUserName == NULL)
+    {
+        exit(ENOMEM);
+    }
+    else
+    {
+        bzero(l_structCommon->sUserName, PARAMETER_MAX_LENGHT);
+        strcpy(l_structCommon->sUserName, "n00b");
     }
 
     /*  Start the graphic mode */
@@ -281,6 +292,7 @@ int main(int argc, char** argv)
     {
         pthread_mutex_destroy(l_structCommon->pthreadMutex);
     }
+    free(l_structCommon->sUserName);
     free(l_structCommon->pthreadMutex);
     free(l_structCommon->iClientsSockets);
     free(l_structCommon->iClientsColor);

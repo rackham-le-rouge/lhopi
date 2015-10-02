@@ -66,7 +66,7 @@
 #define TCP_PORT                        5555
 #define MAX_CONNECTED_CLIENTS           6  /* When  program is a server, max clients connected to him | 8 colors available, but there is black and the current user color */
 #define TIME_BETWEEN_TWO_REQUEST        20000   /* FIXME why can i go over somthing like 20000 without lost the capability of sending messages */
-
+#define PARAMETER_MAX_LENGHT            40  /* Max parameter size for a user command during execution. Limited by ipv6 max lenght */
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */
@@ -129,13 +129,13 @@ typedef enum
     enumLine =      13,
     enumLogLine =   14,
     enumBoardLine = 15,
-    enumLetterRed    = 21,
-    enumLetterGreen  = 22,
-    enumLetterYellow = 23,
-    enumLetterBlue   = 24,
-    enumLetterPurple = 25,
-    enumLetterCyan   = 26,
-    enumLetterWhite  = 27
+    enumLetterRed    = 24,
+    enumLetterGreen  = 25,
+    enumLetterYellow = 26,
+    enumLetterBlue   = 28,
+    enumLetterPurple = 29,
+    enumLetterCyan   = 30,
+    enumLetterWhite  = 31
 }g_enumJeuxDeCouleursDispo;
 
 
@@ -190,6 +190,8 @@ typedef enum
   * Member 'cUserMove' Last user move, used also as a flag. When this value goes back to 0 means that the user move have been transmitted to the server
   * @var structProgramInfo_::iClientsColor
   * Member 'iClientsColor' Table containing all the clients color when you are on the server side of the app
+  * @var structProgramInfo_::sUserName
+  * Member 'sUserName' Name of the user, by default we put some funny stuff in it. User can redefine it. Usefull to know who sent a message on the network discussion
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -216,8 +218,9 @@ typedef struct structProgramInfo_
     char    cUserMove;
     char*   sUserCommand;
     char*   sServerAddress;
+    char*   sUserName;
     char*** cGrid;
-    unsigned char padding[1];
+    /*unsigned char padding[1];*/
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

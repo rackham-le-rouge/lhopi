@@ -404,25 +404,6 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 /* If user put a rock, do the same here */
                 if(l_cClientAction == 'r')
                 {
-                    /* This player have done its turn. Change it */
-                    p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 1;
-log_info("give turn to %d", (p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex + 1] == 1) ? l_iCurrentSocketIndex + 1 : 0);
-                    p_structCommon->bWhoHaveToPlay[ (p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex + 1] == 1) ? l_iCurrentSocketIndex + 1 : 0 ] = 2;
-
-                    if(p_structCommon->bWhoHaveToPlay[0] == 2)
-                    {
-                        p_structCommon->bMyTurnToPlay = TRUE;
-                        p_structCommon->bWhoHaveToPlay[0] = 4;
-debug("turn so given ti server");
-                    }
-                    else if(p_structCommon->bWhoHaveToPlay[0] == 4 && p_structCommon->bMyTurnToPlay == FALSE)
-                    {
-                        p_structCommon->bWhoHaveToPlay[0] = 2;
-debug("turn given back to 0");
-                    }
-
-
-
                     /* We have to check two times in order to avoid network issues */
                     if(l_iVerificationIterator == 1)
                     {
@@ -445,6 +426,19 @@ debug("turn given back to 0");
                             /* Check if the client have not completed a loop. We compute loop here and now. After, we fill the area and send data to clients */
                             loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iClientsColor[l_iCurrentSocketIndex], p_structCommon);
 
+                            /* This player have done its turn. Change it. Give new players's turn */
+                            p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 1;
+                            p_structCommon->bWhoHaveToPlay[ (p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex + 1] == 1) ? l_iCurrentSocketIndex + 1 : 0 ] = 2;
+
+                            if(p_structCommon->bWhoHaveToPlay[0] == 2)
+                            {
+                                p_structCommon->bMyTurnToPlay = TRUE;
+                                p_structCommon->bWhoHaveToPlay[0] = 4;
+                            }
+                            else if(p_structCommon->bWhoHaveToPlay[0] == 4 && p_structCommon->bMyTurnToPlay == FALSE)
+                            {
+                                p_structCommon->bWhoHaveToPlay[0] = 2;
+                            }
                         }
                         /* Second verification failed */
                         else
@@ -546,7 +540,6 @@ debug("turn given back to 0");
             }
             else if(strstr(l_cBufferTransmittedData, "cli_srv ack0006") != NULL)
             {
-debug("received ack0006");
                 p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 3;
                 p_structCommon->cUserMove = 0;
 
@@ -588,7 +581,6 @@ debug("received ack0006");
                 log_msg("Server: unexpected starting runlevel reached");
                 break;
         }
-log_info("server rock %c bWhoHaveToPlay[0] %d bWhoHaveToPlay[1] %d bWhoHaveToPlay[2] %d myturn %d", p_structCommon->cUserMove, p_structCommon->bWhoHaveToPlay[0], p_structCommon->bWhoHaveToPlay[1], p_structCommon->bWhoHaveToPlay[2], p_structCommon->bMyTurnToPlay);
         /* If server drops a rocks, end its turn */
         if(p_structCommon->cUserMove == 'r')
         {

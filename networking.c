@@ -262,7 +262,10 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
         log_msg("Socket-server: Waiting thread received a client co request. Start a new thread...");
         log_info("Socket-server: Starting thread have the index %d/%d and the Socket is %d", l_iSocketCounter + 1, MAX_CONNECTED_CLIENTS, l_iSocketNewConnection);
 
-        /* New connection is asked. Try to start a new thread */
+        /* New connection is asked. Try to start a new thread - If this is the first client, put 4.This is a special code,
+            because i've done bad work on this feature, to say it is still the server's turn to play. When the server have drop its rock,
+            we put 2 in this value and inform the client that it is its turn to play */
+        p_structCommon->bWhoHaveToPlay[l_iSocketCounter] = (l_iSocketCounter == 0) ? 4 : 1;
         p_structCommon->iClientsSockets[l_iSocketCounter++] = l_iSocketNewConnection;
         if(pthread_create( &l_structThreadID , NULL ,  tcpSocketServerConnectionHander , (void*) p_structCommon) < 0)
         {
@@ -325,6 +328,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
     char l_cBufferToSendData[USER_COMMAND_LENGHT];
     char l_bExit;
+    char l_cClientAction;
     int l_iReturnedReadWriteValue;
     int l_iCurrentSocketIndex;
     int l_iClientRequestInit;
@@ -338,6 +342,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     unsigned int l_iCursorBrowseringY;
 
     l_bExit = FALSE;
+    l_cClientAction = 0;
     l_iCurrentSocketIndex = MAX_CONNECTED_CLIENTS - 1;
     l_iClientRequestInit = 0;
     l_iCursorX = 1;
@@ -394,11 +399,30 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 /* Receive position and action done by user */
                 l_iCursorX = atoi(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 1);
                 l_iCursorY = atoi(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 6);
-                p_structCommon->cUserMove = *(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 11);
+                l_cClientAction = *(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 11);
 
                 /* If user put a rock, do the same here */
-                if(p_structCommon->cUserMove == 'r')
+                if(l_cClientAction == 'r')
                 {
+                    /* This player have done its turn. Change it */
+                    p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 1;
+log_info("give turn to %d", (p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex + 1] == 1) ? l_iCurrentSocketIndex + 1 : 0);
+                    p_structCommon->bWhoHaveToPlay[ (p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex + 1] == 1) ? l_iCurrentSocketIndex + 1 : 0 ] = 2;
+
+                    if(p_structCommon->bWhoHaveToPlay[0] == 2)
+                    {
+                        p_structCommon->bMyTurnToPlay = TRUE;
+                        p_structCommon->bWhoHaveToPlay[0] = 4;
+debug("turn so given ti server");
+                    }
+                    else if(p_structCommon->bWhoHaveToPlay[0] == 4 && p_structCommon->bMyTurnToPlay == FALSE)
+                    {
+                        p_structCommon->bWhoHaveToPlay[0] = 2;
+debug("turn given back to 0");
+                    }
+
+
+
                     /* We have to check two times in order to avoid network issues */
                     if(l_iVerificationIterator == 1)
                     {
@@ -420,6 +444,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
                             /* Check if the client have not completed a loop. We compute loop here and now. After, we fill the area and send data to clients */
                             loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iClientsColor[l_iCurrentSocketIndex], p_structCommon);
+
                         }
                         /* Second verification failed */
                         else
@@ -443,7 +468,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 }
 
                 /* Prepare answer by continuing to tell the content of the grid */
-                if(p_structCommon->cUserMove == 'Z' || l_iVerificationIterator < 2)
+                if(l_cClientAction == 'Z' || l_iVerificationIterator < 2)
                 {
                     snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c",
                                 l_iCursorBrowseringX,
@@ -461,7 +486,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 }
                 /* If we are here it is because the distant move of client was 'r' means "drop a rock", and we have passed the verifications
                  * (two identical request to the server). So we can send an aknowlegement to the client to say "stop sending me this order, i know it" */
-                else if(p_structCommon->cUserMove == 'r')
+                else if(l_cClientAction == 'r')
                 {
                     l_iVerificationIterator = 0;
                     snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c",
@@ -511,10 +536,19 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 l_iClientRequestInit = 4;
             }
             /* Messaging function */
-            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
+            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL && strlen(l_cBufferToSendData) != 0)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
+
+                /* Empty answer to avoid stopping ping-pong and then block read() of client */
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
+            }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv ack0006") != NULL)
+            {
+debug("received ack0006");
+                p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 3;
+                p_structCommon->cUserMove = 0;
 
                 /* Empty answer to avoid stopping ping-pong and then block read() of client */
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
@@ -528,7 +562,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         }
 
 
-    /* Whe n we have to initialize the client. All the request code are here. At the end, put 0 */
+        /* When we have to initialize the client. All the request code are here. At the end, put 0
+           We don't have to protect this part against l_cBufferToSendData overwriting because it is the initialisation part */
         switch(l_iClientRequestInit)
         {
             case 0:
@@ -553,9 +588,28 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 log_msg("Server: unexpected starting runlevel reached");
                 break;
         }
+log_info("server rock %c bWhoHaveToPlay[0] %d bWhoHaveToPlay[1] %d bWhoHaveToPlay[2] %d myturn %d", p_structCommon->cUserMove, p_structCommon->bWhoHaveToPlay[0], p_structCommon->bWhoHaveToPlay[1], p_structCommon->bWhoHaveToPlay[2], p_structCommon->bMyTurnToPlay);
+        /* If server drops a rocks, end its turn */
+        if(p_structCommon->cUserMove == 'r')
+        {
+            p_structCommon->bWhoHaveToPlay[0] = 2;
+            p_structCommon->bMyTurnToPlay = FALSE;
+        }
+
+        if(l_iClientRequestInit == 0 && 
+           strlen(l_cBufferToSendData) < 1 &&
+           p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] == 2)
+        {
+            /* Send message to the user it is its turn to play */
+            strcpy(l_cBufferToSendData, "cli_srv r0006");
+        }
+
+
+
+
 
         /* If user wants to send a message, prepare the request */
-        if(strstr(p_structCommon->sUserCommand, "sendmsg"))
+        if(strstr(p_structCommon->sUserCommand, "sendmsg") && strlen(l_cBufferToSendData) == 0)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
@@ -790,6 +844,11 @@ void* clientConnectionThread(void* p_structCommonShared)
                 strcpy(l_cBufferToSendData, "cli_srv ack0003");
             }
             /* the new ping-pong system to have an connection alive all the time */
+            else if(strstr(l_cBufferTransmittedData, "r0006") != NULL)
+            {
+                strcpy(l_cBufferToSendData, "cli_srv ack0006");
+                p_structCommon->bMyTurnToPlay = TRUE;
+            }
             else if(strstr(l_cBufferTransmittedData, "ack0005") != NULL)
             {
                 l_iX = atoi(strstr(l_cBufferTransmittedData, "ack0005") + strlen("ack0005") + 1);

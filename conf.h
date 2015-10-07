@@ -193,6 +193,10 @@ typedef enum
   * Member 'iClientsColor' Table containing all the clients color when you are on the server side of the app
   * @var structProgramInfo_::sUserName
   * Member 'sUserName' Name of the user, by default we put some funny stuff in it. User can redefine it. Usefull to know who sent a message on the network discussion
+  * @var structProgramInfo_::bMyTurnToPlay
+  * Member 'bMyTurnToPlay' In single user mode, it is already true. By when we are in online mode, it more complicated.
+  * @var structProgramInfo_::bWhoHaveToPlay
+  * Member 'bWhoHaveToPlay' Server's table to gives turns to each player. 2 means it is the current player, 1 is an active player awaiting for his turn, and 0 an uninitialized player
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -212,16 +216,18 @@ typedef struct structProgramInfo_
     int           iServerSocket;
     int*          iClientsSockets;
     unsigned int* iClientsColor;
+    char    bMyTurnToPlay;
     char    bIpV4;
     char    bMutexInitialized;
     char    bNetworkDisconnectionRequiered;
     char    bAbleToRestartGame;
     char    cUserMove;
+    char*   bWhoHaveToPlay;
     char*   sUserCommand;
     char*   sServerAddress;
     char*   sUserName;
     char*** cGrid;
-    /*unsigned char padding[1];*/
+    unsigned char padding[2];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

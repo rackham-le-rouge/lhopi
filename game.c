@@ -440,6 +440,8 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
             cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
             drawTheBoardGame(p_structCommon);
+
+            p_structCommon->bMyTurnToPlay = TRUE;
         }
     }
     else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
@@ -481,6 +483,8 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
             cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
             drawTheBoardGame(p_structCommon);
+
+            p_structCommon->bMyTurnToPlay = FALSE;
         }
     }
     else if(!strncmp(l_sFirstWord, "sendmsg", strlen("sendmsg")))
@@ -623,6 +627,11 @@ void playGame(structProgramInfo* p_structCommon)
             }
 			case ' ':
 			{
+                if(p_structCommon->bMyTurnToPlay != TRUE)
+                {
+                    break;
+                }
+
 				/* When the user drop a rock */
                 p_structCommon->cUserMove = 'r';
                 p_structCommon->iLastXUsed = l_iCursorX;
@@ -648,6 +657,10 @@ void playGame(structProgramInfo* p_structCommon)
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */
                 loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iCurrentUserColor, p_structCommon);
+
+                /* Reset this player turn */
+                p_structCommon->bMyTurnToPlay = FALSE;
+                break;
 			}
 
 			default:

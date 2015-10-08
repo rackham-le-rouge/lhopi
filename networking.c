@@ -530,7 +530,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 l_iClientRequestInit = 4;
             }
             /* Messaging function */
-            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL && strlen(l_cBufferToSendData) != 0)
+            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)// && strlen(l_cBufferToSendData) != 0)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");

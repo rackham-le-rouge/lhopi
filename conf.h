@@ -61,11 +61,12 @@
 #define COLOR_MATRIX                    0   /* The matrix 'layer'dedicated to store color */
 #define TEXT_MATRIX                     1   /* The matrix 'layer' with the character to display */
 #define LOOPALGO_MATRIX                 2   /* The matric 'layer' used by the algo to find if a loop is done */
+#define SYNC_MATRIX                     3   /* The matrix 'layer' used by the synchronisation algo in server part during online game to know block to synch with clients */
 #define USER_COMMAND_LENGHT             256 /* Size max of the command enter by the user during the game */
 #define TCP_PORT                        5555
 #define MAX_CONNECTED_CLIENTS           6  /* When  program is a server, max clients connected to him | 8 colors available, but there is black and the current user color */
 #define TIME_BETWEEN_TWO_REQUEST        20000   /* FIXME why can i go over somthing like 20000 without lost the capability of sending messages */
-
+#define PARAMETER_MAX_LENGHT            40  /* Max parameter size for a user command during execution. Limited by ipv6 max lenght */
 /* Cursor parameters */
 #define CURSOR_COLOR                    COLOR_WHITE
 #define CURSOR_CHARACTER                219 /* The full matrix */
@@ -81,8 +82,10 @@ typedef enum
     POINT_TO_EXPLORE_FILLING,
     POINT_EXPLORED,
     POINT_EXPLORED_FILLING,
+    POINT_EXPLORED_NOT_FILLING,
     POINT_START_EXPLORED,
     POINT_START_EXPLORED_FILLING,
+    POINT_TO_SYNC,
     POINT_ALL
 }g_enumKindOfPoints;
 
@@ -126,7 +129,14 @@ typedef enum
     enumConsole =   12,
     enumLine =      13,
     enumLogLine =   14,
-    enumBoardLine = 15
+    enumBoardLine = 15,
+    enumLetterRed    = 24,
+    enumLetterGreen  = 25,
+    enumLetterYellow = 26,
+    enumLetterBlue   = 28,
+    enumLetterPurple = 29,
+    enumLetterCyan   = 30,
+    enumLetterWhite  = 31
 }g_enumJeuxDeCouleursDispo;
 
 
@@ -181,6 +191,14 @@ typedef enum
   * Member 'cUserMove' Last user move, used also as a flag. When this value goes back to 0 means that the user move have been transmitted to the server
   * @var structProgramInfo_::iClientsColor
   * Member 'iClientsColor' Table containing all the clients color when you are on the server side of the app
+  * @var structProgramInfo_::sUserName
+  * Member 'sUserName' Name of the user, by default we put some funny stuff in it. User can redefine it. Usefull to know who sent a message on the network discussion
+  * @var structProgramInfo_::bMyTurnToPlay
+  * Member 'bMyTurnToPlay' In single user mode, it is already true. By when we are in online mode, it more complicated.
+  * @var structProgramInfo_::bWhoHaveToPlay
+  * Member 'bWhoHaveToPlay' Server's table to gives turns to each player. 2 means it is the current player, 1 is an active player awaiting for his turn, and 0 an uninitialized player
+  * @var structProgramInfo_::iLastUserRequestID
+  * Member 'iLastUserRequest' In order to avoid twice or more execution of the same user request (entered with ':' operator during the game)
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -197,18 +215,22 @@ typedef struct structProgramInfo_
     unsigned int  iCurrentUserColor;
     unsigned int  iLastXUsed;
     unsigned int  iLastYUsed;
+    unsigned int  iLastUserRequestID;
     int           iServerSocket;
     int*          iClientsSockets;
     unsigned int* iClientsColor;
+    char    bMyTurnToPlay;
     char    bIpV4;
     char    bMutexInitialized;
     char    bNetworkDisconnectionRequiered;
     char    bAbleToRestartGame;
     char    cUserMove;
+    char*   bWhoHaveToPlay;
     char*   sUserCommand;
     char*   sServerAddress;
+    char*   sUserName;
     char*** cGrid;
-    unsigned char padding[1];
+    unsigned char padding[2];
 }__attribute__((aligned(4),packed)) structProgramInfo;
 
 

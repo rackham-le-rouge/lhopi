@@ -42,9 +42,9 @@ void gameInit(structProgramInfo* p_structCommon)
        function.
 	   --> The second layer is the text layer, in order to put special character for each user
 	*/
-	p_structCommon->cGrid = (char***)malloc(3 * sizeof(char**));
+	p_structCommon->cGrid = (char***)malloc(4 * sizeof(char**));
 
-	for(l_iIteratorLayer = 0; l_iIteratorLayer < 3 ; l_iIteratorLayer++)
+	for(l_iIteratorLayer = 0; l_iIteratorLayer < 4 ; l_iIteratorLayer++)
 	{
 		p_structCommon->cGrid[l_iIteratorLayer] = (char**)malloc(p_structCommon->iSizeY * sizeof(char*));
 		for(l_iIterator = 0 ; l_iIterator < p_structCommon->iSizeY ; l_iIterator++)
@@ -61,6 +61,9 @@ void gameInit(structProgramInfo* p_structCommon)
 					l_iTmp = ' ';
 					break;
 					case LOOPALGO_MATRIX:
+					l_iTmp = POINT_EMPTY;
+					break;
+					case SYNC_MATRIX:
 					l_iTmp = POINT_EMPTY;
 					break;
 					default:
@@ -233,7 +236,8 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUse
 
     /* We alreadu know this point */
     if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED_FILLING ||
-      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START_EXPLORED_FILLING)
+      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_START_EXPLORED_FILLING ||
+      p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] == POINT_EXPLORED_NOT_FILLING)
     {
         return 1;
     }
@@ -241,7 +245,14 @@ int recursiveEmptyFilling(unsigned int p_iY, unsigned int p_iX, int p_iActiveUse
     /* There is a new point. Mark visited before doing anything */
     if(p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] != POINT_START_FILLING)
     {
-        p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_FILLING;
+        if(p_structCommon->cGrid[COLOR_MATRIX][p_iY][p_iX] == enumNoir)
+        {
+            p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_FILLING;
+        }
+        else
+        {
+            p_structCommon->cGrid[LOOPALGO_MATRIX][p_iY][p_iX] = POINT_EXPLORED_NOT_FILLING;
+        }
     }
     else
     {
@@ -315,12 +326,14 @@ int loopCompletion(unsigned int p_iCursorX, unsigned int p_iCursorY, int p_iActi
                     /* Area to fill found */
                     cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, COLOR_MATRIX, p_iActiveUserColor, p_structCommon);
                     cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, TEXT_MATRIX, ' ', p_structCommon);
+                    cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, SYNC_MATRIX, POINT_TO_SYNC, p_structCommon);
                 }
                 else
                 {
                 }
                 cleanGridLayer(LOOPALGO_MATRIX, POINT_START_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
                 cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+                cleanGridLayer(LOOPALGO_MATRIX, POINT_EXPLORED_NOT_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
                 cleanGridLayer(LOOPALGO_MATRIX, POINT_START_EXPLORED_FILLING, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
             }
         }
@@ -374,7 +387,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 {
     /* extract the command from the command line */
     char l_sFirstWord[64];          /* Sometimes we have to set limits to the fools */
-    char l_sParameter[40];          /* IPV6 mac lenght = 39 */
+    char l_sParameter[PARAMETER_MAX_LENGHT];          /* IPV6 mac lenght = 39 */
     char l_sMessageToDisplay[USER_COMMAND_LENGHT]; 
     unsigned int l_iIterator;
     unsigned int l_iIterator2;
@@ -386,6 +399,9 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     l_iIterator2 = 0;
     l_iWatchdog = 0;
     bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
+
+    /* There is a new request, executable or not, so we set a new user request ID */
+    p_structCommon->iLastUserRequestID++;
 
     /* Command finding in the user provided string */
     while(p_structCommon->sUserCommand[l_iIterator] <= 'z' && p_structCommon->sUserCommand[l_iIterator] >='a')
@@ -418,6 +434,17 @@ void userCommandExecute(structProgramInfo* p_structCommon)
         {
             log_err("Init of server failed. Abort the order%s", " ");
             strcpy(l_sMessageToDisplay, "Server mode failed to start...");
+        }
+        else
+        {
+            /* Reset the board */
+            cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
+            cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
+            cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
+            drawTheBoardGame(p_structCommon);
+
+            p_structCommon->bMyTurnToPlay = TRUE;
         }
     }
     else if(!strncmp(l_sFirstWord, "connect", strlen("connect")))
@@ -457,13 +484,32 @@ void userCommandExecute(structProgramInfo* p_structCommon)
             cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
             cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
             cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+            cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
             drawTheBoardGame(p_structCommon);
+
+            p_structCommon->bMyTurnToPlay = FALSE;
         }
     }
     else if(!strncmp(l_sFirstWord, "sendmsg", strlen("sendmsg")))
     {
         /* The active thread is going to handle and purge the buffer */
-        bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
+        if(p_structCommon->iCurrentUserColor == enumRouge)
+        {
+            snprintf(l_sMessageToDisplay,
+                 USER_COMMAND_LENGHT,
+                 "##%d%s:##%d %s",
+                 p_structCommon->iCurrentUserColor + 20,
+                 p_structCommon->sUserName,
+                 7,
+                 strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
+
+            /* Leave time to all threads to take the information */
+            usleep(5 * TIME_BETWEEN_TWO_REQUEST);
+        }
+    }
+    else if(!strncmp(l_sFirstWord, "nick", strlen("nick")))
+    {
+        strcpy(p_structCommon->sUserName, l_sParameter);
     }
     else
     {
@@ -562,10 +608,6 @@ void playGame(structProgramInfo* p_structCommon)
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
-                /* Display wursor each time */
-                l_iMovement = 0;
-                l_iCursorX = 1;
-                l_iCursorY = 1;
 
                 displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
                 refresh();
@@ -600,6 +642,11 @@ void playGame(structProgramInfo* p_structCommon)
             }
 			case ' ':
 			{
+                if(p_structCommon->bMyTurnToPlay != TRUE)
+                {
+                    break;
+                }
+
 				/* When the user drop a rock */
                 p_structCommon->cUserMove = 'r';
                 p_structCommon->iLastXUsed = l_iCursorX;
@@ -613,6 +660,9 @@ void playGame(structProgramInfo* p_structCommon)
 				p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX] =
 					' ';
 
+                /* declare this point to be synchronized with all clients */
+                p_structCommon->cGrid[SYNC_MATRIX][l_iCursorY][l_iCursorX] = POINT_TO_SYNC;
+
                 /* Draw the block of the current user (the other blocks are draw by
                     another function) */
 				drawElement(l_iCursorX + p_structCommon->iOffsetX, l_iCursorY + p_structCommon->iOffsetY,
@@ -622,6 +672,10 @@ void playGame(structProgramInfo* p_structCommon)
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */
                 loopCompletion(l_iCursorX, l_iCursorY, p_structCommon->iCurrentUserColor, p_structCommon);
+
+                /* Reset this player turn */
+                p_structCommon->bMyTurnToPlay = FALSE;
+                break;
 			}
 
 			default:

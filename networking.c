@@ -537,6 +537,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
 
+                /* Prepare server to resend message to all other users, and give it a new user command ID  */
+                snprintf(p_structCommon->sUserCommand, USER_COMMAND_LENGHT, "resendtoall %s", strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
+                p_structCommon->iLastUserRequestID++;
+
                 /* Empty answer to avoid stopping ping-pong and then block read() of client */
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
             }
@@ -616,6 +620,19 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             /* local l_iLastUserRequestID update */
             l_iLastUserRequestID = p_structCommon->iLastUserRequestID;
         }
+
+        if(strstr(p_structCommon->sUserCommand, "resendtoall ") && strlen(l_cBufferToSendData) == 0 && l_iLastUserRequestID < p_structCommon->iLastUserRequestID)
+        {
+            snprintf(l_cBufferToSendData,
+                            USER_COMMAND_LENGHT,
+                            "srv_cli msg %s",
+                            strstr(p_structCommon->sUserCommand, "resendtoall ") + strlen("resendtoall "));
+
+            /* local l_iLastUserRequestID update */
+            l_iLastUserRequestID = p_structCommon->iLastUserRequestID;
+        }
+
+
 
 
         /************************
@@ -911,9 +928,6 @@ void* clientConnectionThread(void* p_structCommonShared)
                             p_structCommon->sUserName,
                             7,
                             strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
-
-            threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferToSendData, "srv_cli msg ") + strlen("srv_cli msg "));
-            threadSafeLogBar(p_structCommon, DISPLAY, "");
 
             bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
         }

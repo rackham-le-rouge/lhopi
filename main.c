@@ -197,6 +197,7 @@ int main(int argc, char** argv)
     l_structCommon->bMyTurnToPlay = TRUE;
     l_structCommon->bAbleToRestartGame = FALSE;
     l_structCommon->pthreadMutex = NULL;
+    l_structCommon->iLastUserRequestID = 0;
     l_structCommon->bMutexInitialized = FALSE;
     l_structCommon->bNetworkDisconnectionRequiered = FALSE;
     l_structCommon->sUserName = (char*)malloc(PARAMETER_MAX_LENGHT * sizeof(char));

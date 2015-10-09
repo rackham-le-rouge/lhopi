@@ -197,6 +197,8 @@ typedef enum
   * Member 'bMyTurnToPlay' In single user mode, it is already true. By when we are in online mode, it more complicated.
   * @var structProgramInfo_::bWhoHaveToPlay
   * Member 'bWhoHaveToPlay' Server's table to gives turns to each player. 2 means it is the current player, 1 is an active player awaiting for his turn, and 0 an uninitialized player
+  * @var structProgramInfo_::iLastUserRequestID
+  * Member 'iLastUserRequest' In order to avoid twice or more execution of the same user request (entered with ':' operator during the game)
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -213,6 +215,7 @@ typedef struct structProgramInfo_
     unsigned int  iCurrentUserColor;
     unsigned int  iLastXUsed;
     unsigned int  iLastYUsed;
+    unsigned int  iLastUserRequestID;
     int           iServerSocket;
     int*          iClientsSockets;
     unsigned int* iClientsColor;

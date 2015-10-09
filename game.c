@@ -400,6 +400,9 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     l_iWatchdog = 0;
     bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
+    /* There is a new request, executable or not, so we set a new user request ID */
+    p_structCommon->iLastUserRequestID++;
+
     /* Command finding in the user provided string */
     while(p_structCommon->sUserCommand[l_iIterator] <= 'z' && p_structCommon->sUserCommand[l_iIterator] >='a')
     {
@@ -490,7 +493,19 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     else if(!strncmp(l_sFirstWord, "sendmsg", strlen("sendmsg")))
     {
         /* The active thread is going to handle and purge the buffer */
-        bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
+        if(p_structCommon->iCurrentUserColor == enumRouge)
+        {
+            snprintf(l_sMessageToDisplay,
+                 USER_COMMAND_LENGHT,
+                 "##%d%s:##%d %s",
+                 p_structCommon->iCurrentUserColor + 20,
+                 p_structCommon->sUserName,
+                 7,
+                 strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
+
+            /* Leave time to all threads to take the information */
+            usleep(5 * TIME_BETWEEN_TWO_REQUEST);
+        }
     }
     else if(!strncmp(l_sFirstWord, "nick", strlen("nick")))
     {

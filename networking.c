@@ -338,11 +338,13 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     int l_iPotentialNewRockY;
     int l_iVerificationIterator;
     int l_iWatchdog;
+    unsigned int l_iLastUserRequestID;
     unsigned int l_iCursorBrowseringX;
     unsigned int l_iCursorBrowseringY;
 
     l_bExit = FALSE;
     l_cClientAction = 0;
+    l_iLastUserRequestID = 0;
     l_iCurrentSocketIndex = MAX_CONNECTED_CLIENTS - 1;
     l_iClientRequestInit = 0;
     l_iCursorX = 1;
@@ -601,7 +603,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
 
         /* If user wants to send a message, prepare the request */
-        if(strstr(p_structCommon->sUserCommand, "sendmsg") && strlen(l_cBufferToSendData) == 0)
+        if(strstr(p_structCommon->sUserCommand, "sendmsg") && strlen(l_cBufferToSendData) == 0 && l_iLastUserRequestID < p_structCommon->iLastUserRequestID)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
@@ -611,10 +613,8 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                             7,
                             strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
 
-            threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferToSendData, "srv_cli msg ") + strlen("srv_cli msg "));
-            threadSafeLogBar(p_structCommon, DISPLAY, "");
-
-            bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT);
+            /* local l_iLastUserRequestID update */
+            l_iLastUserRequestID = p_structCommon->iLastUserRequestID;
         }
 
 

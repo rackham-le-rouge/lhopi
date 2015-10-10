@@ -307,12 +307,18 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
 {
 	unsigned int l_iIterateur;
     unsigned int l_iX;
+    unsigned int l_iUserNameIndex;
     int     l_iColor = enumLogLine;
+    int     l_iLastUserColor;
     char    l_sBuffer[USER_COMMAND_LENGHT + 3];
+    char    l_sUserName[22];                        /* Because displaying space have 20 characters */
 
     l_iX = 0;
 	l_iIterateur = 0;
+    l_iUserNameIndex = 0;
+    l_iLastUserColor = 0;
     bzero(l_sBuffer, USER_COMMAND_LENGHT + 3);
+    bzero(l_sUserName, 22);
     strcpy(l_sBuffer, p_sLineContent);
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
@@ -331,8 +337,20 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
                 l_sBuffer[l_iIterateur + 1] = '^';
                 l_sBuffer[l_iIterateur + 2] = '^';
             }
+            if(l_iColor != 7)
+            {
+                l_iLastUserColor = l_iColor;
+            }
+
             /* Reserved color for the rest of the program. Here, used to reset the log color */
-            if(l_iColor == 7) l_iColor = enumLogLine;
+            if(l_iColor == 7)
+            {
+                if(l_iLastUserColor > 26) l_iLastUserColor--;   /* Because 27 doesn't exist, because color enum 7 is taken for service reasons */
+                printUserName(l_sUserName, l_iLastUserColor, p_structCommon);
+                l_iUserNameIndex = 0;
+                bzero(l_sUserName, 22);
+                l_iColor = enumLogLine;
+            }
         }
         /* Useless character. Used to stuff the line */
         else if(l_sBuffer[l_iIterateur] == '^')
@@ -348,6 +366,10 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
         else if((l_iIterateur > 0 && l_sBuffer[l_iIterateur - 1] != '#' && l_sBuffer[l_iIterateur - 1] != '^') ||       /* On any char of the string */
                 (l_iIterateur == 0 && l_sBuffer[l_iIterateur] != '#' && l_sBuffer[l_iIterateur] != '^'))                /* On the first char */
         {
+            if(l_iColor != enumLogLine && l_iUserNameIndex < 21)
+            {
+                l_sUserName[l_iUserNameIndex++] = p_sLineContent[l_iIterateur];
+            }
 		    drawElement(l_iX++, p_structCommon->iRow - (CONSOLE_SPACE_ON_BOARD_BOTTOM ) + p_iLineNumber, p_sLineContent[l_iIterateur] , l_iColor);
         }
 		/* We put -1 in order to take care of the scpace taken by this line */
@@ -397,3 +419,22 @@ int getNextAvailableUserColor(structProgramInfo* p_structCommon)
 
     return -1;
 }
+
+
+/**
+  * @brief Function to print user name with its color at the right place on the screen
+  * @param p_sUserName : the name of the user
+  * @param p_iUserColor : color (please refer to the enum). Based on thjis enum, we compute the Y coordinate where to print the name
+  * @param p_structCommon : Struct with all the program information
+  */
+void printUserName(char* p_sUserName, unsigned int p_iUserColor, structProgramInfo* p_structCommon)
+{
+    unsigned int l_iIterator;
+
+    /* Use 20 because it is the max len of nick displayed */
+    for(l_iIterator = 0; l_iIterator < 20; l_iIterator++)
+    {
+        drawElement(p_structCommon->iCol - 19 + l_iIterator, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + p_iUserColor - enumLetterRed,  *(p_sUserName + l_iIterator), p_iUserColor);
+    }
+}
+

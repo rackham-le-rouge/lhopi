@@ -497,7 +497,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
         {
             snprintf(l_sMessageToDisplay,
                  USER_COMMAND_LENGHT,
-                 "##%d%s:##%d %s",
+                 "##%d%s##%d %s",
                  p_structCommon->iCurrentUserColor + 20,
                  p_structCommon->sUserName,
                  7,

@@ -611,7 +611,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
-                            "srv_cli msg ##%d%s:##%d %s",
+                            "srv_cli msg ##%d%s##%d %s",
                             p_structCommon->iCurrentUserColor + 20,
                             p_structCommon->sUserName,
                             7,
@@ -923,7 +923,7 @@ void* clientConnectionThread(void* p_structCommonShared)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
-                            "srv_cli msg ##%d%s:##%d %s",
+                            "srv_cli msg ##%d%s##%d %s",
                             p_structCommon->iCurrentUserColor + 20,
                             p_structCommon->sUserName,
                             7,

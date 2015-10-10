@@ -169,9 +169,15 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
 	/* Clean bars */
 	initBar();
 
+
+
+
+
     start_color();                                  /* start color mode */
     attron(COLOR_PAIR(enumBoardLine));
 
+
+    /**** BOARD LIMIT ****/
     /* Upper Left */
     mvaddch(p_structCommon->iOffsetY - 1, p_structCommon->iOffsetX - 1, ACS_ULCORNER );
     for(l_iIterateur = 0; l_iIterateur < p_structCommon->iSizeX; l_iIterateur++)
@@ -191,8 +197,47 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
     }
     mvaddch(p_structCommon->iOffsetY + p_structCommon->iSizeY, p_structCommon->iOffsetX - 1, ACS_LLCORNER );
     mvaddch(p_structCommon->iOffsetY + p_structCommon->iSizeY, p_structCommon->iOffsetX + p_structCommon->iSizeX, ACS_LRCORNER );
+
+
+
+
+    /**** PLAYER LIST ****/
+    /* Upper Left */
+    mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, p_structCommon->iCol - 22, ACS_ULCORNER );
+    for(l_iIterateur = 0; l_iIterateur < 20; l_iIterateur++)
+    {
+        /* Draw the horizontal lines */
+        mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, l_iIterateur + p_structCommon->iCol - 21, ACS_HLINE);
+        mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + MAX_CONNECTED_CLIENTS + 1, l_iIterateur + p_structCommon->iCol - 21, ACS_HLINE);
+    }
+    /* Upper right */
+    mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, p_structCommon->iCol - 1, ACS_URCORNER );
+
+    for(l_iIterateur = 0; l_iIterateur < MAX_CONNECTED_CLIENTS; l_iIterateur++)
+    {
+        /* Draw the vertical lines */
+        mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iIterateur, p_structCommon->iCol - 22, ACS_VLINE);
+        mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iIterateur, p_structCommon->iCol - 1, ACS_VLINE);
+    }
+    mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + MAX_CONNECTED_CLIENTS + 1, p_structCommon->iCol - 22, ACS_LLCORNER );
+    mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + MAX_CONNECTED_CLIENTS + 1, p_structCommon->iCol - 1, ACS_LRCORNER );
+
+
+    drawElement(p_structCommon->iCol - 19, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 'P' , enumLine);
+    drawElement(p_structCommon->iCol - 18, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 'l' , enumLine);
+    drawElement(p_structCommon->iCol - 17, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 'a' , enumLine);
+    drawElement(p_structCommon->iCol - 16, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 'y' , enumLine);
+    drawElement(p_structCommon->iCol - 15, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 'e' , enumLine);
+    drawElement(p_structCommon->iCol - 14, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 'r' , enumLine);
+    drawElement(p_structCommon->iCol - 13, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2, 's' , enumLine);
  
     attroff(COLOR_PAIR(enumBoardLine));
+
+
+
+
+
+
 
     /* Draw the whole board game */
     for(l_iCursorY = 0; l_iCursorY < p_structCommon->iSizeY; l_iCursorY++)

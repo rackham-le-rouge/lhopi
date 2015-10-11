@@ -308,8 +308,8 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
 	unsigned int l_iIterateur;
     unsigned int l_iX;
     unsigned int l_iUserNameIndex;
+    unsigned int l_iLastUserColor;
     int     l_iColor = enumLogLine;
-    int     l_iLastUserColor;
     char    l_sBuffer[USER_COMMAND_LENGHT + 3];
     char    l_sUserName[22];                        /* Because displaying space have 20 characters */
 
@@ -347,6 +347,12 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
             {
                 if(l_iLastUserColor > 26) l_iLastUserColor--;   /* Because 27 doesn't exist, because color enum 7 is taken for service reasons */
                 printUserName(l_sUserName, l_iLastUserColor, p_structCommon);
+
+                if(l_iLastUserColor - 20 == p_structCommon->iCurrentUserColor)
+                {
+                    drawElement(p_structCommon->iCol - 20, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iLastUserColor - enumLetterRed, '>', l_iLastUserColor);
+                }
+
                 l_iUserNameIndex = 0;
                 bzero(l_sUserName, 22);
                 l_iColor = enumLogLine;

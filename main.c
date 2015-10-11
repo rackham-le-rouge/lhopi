@@ -112,7 +112,7 @@ void logBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedActio
     switch(p_enumBarWantedAction)
     {
       case DISPLAY:
-            for(l_iIterator = 0; l_iIterator < LOG_DIMENTION; l_iIterator++)
+            for(l_iIterator = LOG_DIMENTION - 1; l_iIterator >= 0; l_iIterator--)
             {
                 drawLogLine(p_structCommon, l_iIterator, l_sLogStrings[l_iIterator]);
             }

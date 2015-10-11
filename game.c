@@ -509,6 +509,29 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     }
     else if(!strncmp(l_sFirstWord, "nick", strlen("nick")))
     {
+        if(p_structCommon->iCurrentUserColor == enumRouge)
+        {
+            snprintf(l_sMessageToDisplay,
+                USER_COMMAND_LENGHT,
+                "##%d%s##%d changes his nick to ##%d%s##%d",
+                p_structCommon->iCurrentUserColor + 20,
+                p_structCommon->sUserName,
+                7,
+                p_structCommon->iCurrentUserColor + 20,
+                l_sParameter,
+                7);
+        }
+
+        snprintf(p_structCommon->sUserCommand,
+                USER_COMMAND_LENGHT,
+                "sendmsg changes his nick to ##%d%s##%d",
+                p_structCommon->iCurrentUserColor + 20,
+                l_sParameter,
+                7);
+
+        /* Leave time to all threads to take the information */
+        usleep(5 * TIME_BETWEEN_TWO_REQUEST);
+
         strcpy(p_structCommon->sUserName, l_sParameter);
     }
     else

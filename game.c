@@ -580,6 +580,7 @@ void playGame(structProgramInfo* p_structCommon)
 	{
 		/* Display wursor each time */
 		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, FALSE, p_structCommon->cGrid);
+        pointCounting(p_structCommon->cGrid, p_structCommon->iPoints, p_structCommon->iSizeX, p_structCommon->iSizeY);
 		refresh();
 
 		l_cKey = getch();

@@ -79,6 +79,32 @@ int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_str
         return 0;
 }
 
+/**
+  * @brief Count points of each users -dropped rock on the grid-
+  * @param p_cGrid : the user board
+  * @param p_iPoints : the table to store points of each user. Size is of MAX_CONNECTED_CLIENTS
+  * @param p_iSizeX : size of the grid
+  * @param p_iSizeY : size of the grid
+  */
+void pointCounting(char*** p_cGrid, int* p_iPoints, unsigned int p_iSizeX, unsigned int p_iSizeY)
+{
+    unsigned int l_iX;
+    unsigned int l_iY;
+
+    memset(p_iPoints, 0, MAX_CONNECTED_CLIENTS);
+
+    for(l_iY = 0; l_iY < p_iSizeY; l_iY++)
+    {
+        for(l_iX = 0; l_iX < p_iSizeX; l_iX++)
+        {
+            if(p_cGrid[COLOR_MATRIX][l_iY][l_iX] - enumRouge >= 0)
+            {
+                p_iPoints[p_cGrid[COLOR_MATRIX][l_iY][l_iX] - enumRouge]++;
+            }
+        }
+    }
+}
+
 
 
 void logBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine)
@@ -207,6 +233,7 @@ int main(int argc, char** argv)
 	l_iTmp = 0;
 
     memset(l_structCommon->iClientsColor, 0, MAX_CONNECTED_CLIENTS);
+    memset(l_structCommon->iPoints, 0, MAX_CONNECTED_CLIENTS);
 
     l_structCommon->pthreadMutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
     if(l_structCommon->pthreadMutex == NULL)

@@ -24,6 +24,7 @@
 void killTheApp(void);
 int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_structCommon);
 void logBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine);
+void pointCounting(char*** p_cGrid, int* p_iPoints, unsigned int p_iSizeX, unsigned int p_iSizeY);
 
 #endif
 

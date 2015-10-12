@@ -369,12 +369,14 @@ void userCommandGetter(structProgramInfo* p_structCommon)
     /* ncurses options to display input & display the cursor */
     echo();
     curs_set(1);
+    nodelay(stdscr, 0);
 
     drawElement(0, p_structCommon->iRow - 2, ':', enumLogLine);
     drawElement(1, p_structCommon->iRow - 2, '>', enumLogLine);
     mvscanw(p_structCommon->iRow - 2, 3,"%[^\n]", p_structCommon->sUserCommand);
 
     /* ncurses options to undo modifications */
+    nodelay(stdscr, 1);
     curs_set(0);
     noecho();
 }
@@ -582,6 +584,7 @@ void playGame(structProgramInfo* p_structCommon)
 		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, FALSE, p_structCommon->cGrid);
         pointCounting(p_structCommon->cGrid, p_structCommon->iPoints, p_structCommon->iSizeX, p_structCommon->iSizeY);
 		refresh();
+        usleep(TIME_BETWEEN_TWO_REQUEST);
 
 		l_cKey = getch();
 

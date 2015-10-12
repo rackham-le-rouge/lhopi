@@ -309,7 +309,7 @@ int main(int argc, char** argv)
 
 
     /*  Don't ask Enter key in order to complete a getch() */
-    /*nodelay(stdscr, 1);*/
+    nodelay(stdscr, 1);
 
 	playGame(l_structCommon);
 

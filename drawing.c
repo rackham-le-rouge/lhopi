@@ -297,9 +297,9 @@ void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned in
 
 
 /** @brief This function have to draw the board game taking care of the size of the screen
-  * Colors available. Usage : "there is a ##5string for test##7 to show colors"
+  * Colors available. Usage : "there is a ##5string for test##20 to show colors"
   * Here, "there is a " is printed with the default color for the log lines, "string for test" is printed with
-  * the color 5, Cf g_enumJeuxDeCouleursDispo to see all available colors. ##7 reset color to the default one,
+  * the color 5, Cf g_enumJeuxDeCouleursDispo to see all available colors. ##20 reset color to the default one,
   * and then the last part of the string is printed with the default log line colors.
   * @param p_structCommon : Struct with all the program information
   */
@@ -337,15 +337,14 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
                 l_sBuffer[l_iIterateur + 1] = '^';
                 l_sBuffer[l_iIterateur + 2] = '^';
             }
-            if(l_iColor != 7)
+            if(l_iColor != 20)
             {
                 l_iLastUserColor = l_iColor;
             }
 
             /* Reserved color for the rest of the program. Here, used to reset the log color */
-            if(l_iColor == 7)
+            if(l_iColor == 20)
             {
-                if(l_iLastUserColor > 26) l_iLastUserColor--;   /* Because 27 doesn't exist, because color enum 7 is taken for service reasons */
                 printUserName(l_sUserName, l_iLastUserColor, p_structCommon);
 
                 if(l_iLastUserColor - 20 == p_structCommon->iCurrentUserColor)
@@ -396,12 +395,6 @@ int getNextAvailableUserColor(structProgramInfo* p_structCommon)
 
     for(l_iPossibleColor = enumVert; l_iPossibleColor < enumVert + MAX_CONNECTED_CLIENTS; l_iPossibleColor++)
     {
-        /* Really dirty - Cf conf.h color 7 is reserved, we have to jump over it */
-        if(l_iPossibleColor == 7)
-        {
-            l_iPossibleColor = enumBlanc;
-        }
-
         for(l_iIterator = 0; l_iIterator < MAX_CONNECTED_CLIENTS; l_iIterator++)
         {
             if(p_structCommon->iClientsColor[l_iIterator] == l_iPossibleColor)
@@ -415,12 +408,6 @@ int getNextAvailableUserColor(structProgramInfo* p_structCommon)
             return l_iPossibleColor;
         }
         l_bColorFound = FALSE;
-
-        /* Really dirty - Cf conf.h color 7 is reserved, we have to jump over it */
-        if(l_iPossibleColor == enumBlanc)
-        {
-            l_iPossibleColor = 7;
-        }
     }
 
     return -1;

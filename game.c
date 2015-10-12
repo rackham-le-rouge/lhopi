@@ -502,7 +502,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
                  "##%d%s##%d %s",
                  p_structCommon->iCurrentUserColor + 20,
                  p_structCommon->sUserName,
-                 7,
+                 20,
                  strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
 
             /* Leave time to all threads to take the information */
@@ -518,10 +518,10 @@ void userCommandExecute(structProgramInfo* p_structCommon)
                 "##%d%s##%d changes his nick to ##%d%s##%d",
                 p_structCommon->iCurrentUserColor + 20,
                 p_structCommon->sUserName,
-                7,
+                20,
                 p_structCommon->iCurrentUserColor + 20,
                 l_sParameter,
-                7);
+                20);
         }
 
         snprintf(p_structCommon->sUserCommand,
@@ -529,7 +529,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
                 "sendmsg changes his nick to ##%d%s##%d",
                 p_structCommon->iCurrentUserColor + 20,
                 l_sParameter,
-                7);
+                20);
 
         /* Leave time to all threads to take the information */
         usleep(5 * TIME_BETWEEN_TWO_REQUEST);

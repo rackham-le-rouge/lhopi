@@ -121,11 +121,10 @@ typedef enum
     enumRouge =     4,
     enumVert =      5,
     enumJaune =     6,
-    /* 7 is reserved don't use it ! */
-    enumBleu =      8,
-    enumMagenta =   9,
-    enumCyan =      10,
-    enumBlanc =     11,
+    enumBleu =      7,
+    enumMagenta =   8,
+    enumCyan =      9,
+    enumBlanc =     10,
     enumConsole =   12,
     enumLine =      13,
     enumLogLine =   14,
@@ -133,10 +132,10 @@ typedef enum
     enumLetterRed    = 24,
     enumLetterGreen  = 25,
     enumLetterYellow = 26,
-    enumLetterBlue   = 28,
-    enumLetterPurple = 29,
-    enumLetterCyan   = 30,
-    enumLetterWhite  = 31
+    enumLetterBlue   = 27,
+    enumLetterPurple = 28,
+    enumLetterCyan   = 29,
+    enumLetterWhite  = 30
 }g_enumJeuxDeCouleursDispo;
 
 

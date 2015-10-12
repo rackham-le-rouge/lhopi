@@ -614,7 +614,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                             "srv_cli msg ##%d%s##%d %s",
                             p_structCommon->iCurrentUserColor + 20,
                             p_structCommon->sUserName,
-                            7,
+                            20,
                             strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
 
             /* local l_iLastUserRequestID update */
@@ -926,7 +926,7 @@ void* clientConnectionThread(void* p_structCommonShared)
                             "srv_cli msg ##%d%s##%d %s",
                             p_structCommon->iCurrentUserColor + 20,
                             p_structCommon->sUserName,
-                            7,
+                            20,
                             strstr(p_structCommon->sUserCommand, "sendmsg ") + strlen("sendmsg "));
 
             bzero(p_structCommon->sUserCommand, USER_COMMAND_LENGHT);

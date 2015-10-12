@@ -351,6 +351,10 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
                 {
                     drawElement(p_structCommon->iCol - 20, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iLastUserColor - enumLetterRed, '>', l_iLastUserColor);
                 }
+                else
+                {
+                    drawElement(p_structCommon->iCol - 20, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iLastUserColor - enumLetterRed, ' ', l_iLastUserColor);
+                }
 
                 l_iUserNameIndex = 0;
                 bzero(l_sUserName, 22);
@@ -431,3 +435,44 @@ void printUserName(char* p_sUserName, unsigned int p_iUserColor, structProgramIn
     }
 }
 
+
+/**
+  * @brief Compute and display user ranking based on the number of rock put on the grid
+  * @param p_iPoints : how many rocks per user
+  * @param p_iCol : number of column of the screen
+  * @param p_iRow : number of row of the screen
+  */
+void displayRanking(int* p_iPoints, unsigned int p_iCol, unsigned int p_iRow)
+{
+    unsigned int l_iIterator;
+    unsigned int l_iIterator2;
+    unsigned int l_iRank;
+    unsigned int l_iFirstOne;
+    unsigned int l_iMajor;
+
+    l_iRank = 0;
+    l_iFirstOne = 0;
+    l_iMajor = 0;
+
+    for(l_iIterator = 0; l_iIterator < ((MAX_CONNECTED_CLIENTS > 9) ? 9 : MAX_CONNECTED_CLIENTS); l_iIterator++)
+    {
+        for(l_iIterator2 = 0; l_iIterator2 < MAX_CONNECTED_CLIENTS; l_iIterator2++)
+        {
+            if((unsigned)p_iPoints[l_iIterator2] >= l_iMajor)
+            {
+                l_iFirstOne = l_iIterator2;
+                l_iMajor = p_iPoints[l_iIterator2];
+            }
+        }
+
+        if(p_iPoints[l_iFirstOne] != 0)
+        {
+            drawElement(p_iCol - 21, (p_iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iFirstOne, '1' + l_iRank, enumLetterYellow);
+            p_iPoints[l_iFirstOne] = 0;
+            l_iRank++;
+        }
+
+        l_iFirstOne = 0;
+        l_iMajor = 0;
+    }
+}

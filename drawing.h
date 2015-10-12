@@ -32,6 +32,7 @@ void drawTheBoardGame(structProgramInfo* p_structCommon);
 void displayCursor(unsigned int p_iCursorX, unsigned int p_iCursorY, unsigned int p_iOffsetX, unsigned int p_iOffsetY, char p_bForceRedraw, char*** p_cGrid);
 void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, char* p_sLineContent);
 void printUserName(char* p_sUserName, unsigned int p_iUserColor, structProgramInfo* p_structCommon);
+void displayRanking(int* p_iPoints, unsigned int p_iCol, unsigned int p_iRow);
 int getNextAvailableUserColor(structProgramInfo* p_structCommon);
 
 

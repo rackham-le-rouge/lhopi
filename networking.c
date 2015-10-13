@@ -547,7 +547,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 p_structCommon->iLastUserRequestID++;
 
                 /* Empty answer to avoid stopping ping-pong and then block read() of client */
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, enumNoir, ' ');
 
                 if(strstr(l_cBufferTransmittedData, "\\_o<") != NULL)
                 {
@@ -567,7 +567,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 p_structCommon->cUserMove = 0;
 
                 /* Empty answer to avoid stopping ping-pong and then block read() of client */
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, enumNoir, ' ');
             }
             /* Unknown messages */
             else
@@ -598,7 +598,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             /* At the end of the starting, initialize new ping-pong system to keep connection alive. send an empty ack0005 request to have a r0005 replied etc... */
             case 4:
                 l_iClientRequestInit = 0;
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, enumNoir, ' ');
                 break;
             default:
                 log_msg("Server: unexpected starting runlevel reached");
@@ -950,14 +950,14 @@ void* clientConnectionThread(void* p_structCommonShared)
                 }
 
                 /* Empty answer to avoid stoping ping-pong and then block read() of the server */
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, 0, 'Z');
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, enumNoir, 'Z');
             }
             else             /* some UFO */
             {
                 log_info("Received message from server [%s]", l_cBufferTransmittedData);
 
                 /* Empty answer to avoid stoping ping-pong and then block read() of the server */
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, 0, 'Z');
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, enumNoir, 'Z');
             }
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }

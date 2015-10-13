@@ -8,7 +8,7 @@ Have to be add
 [ ] Man page
 [ ] Command line options
 [ ] Log bar information to say when it is your turn to play
-[ ] Nicks of all connected users
-[ ] Point counting at the end of a game
+[x] Nicks of all connected users
+[x] Point counting at the end of a game
 [ ] Ability to restart a game after an end
 [ ] Blocks-giving when a user decide to surrender

@@ -329,6 +329,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     char l_cBufferToSendData[USER_COMMAND_LENGHT];
     char l_bExit;
     char l_cClientAction;
+    char l_bDuckServiceMessageAnswerWaiting;
     int l_iReturnedReadWriteValue;
     int l_iCurrentSocketIndex;
     int l_iClientRequestInit;
@@ -341,8 +342,12 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     unsigned int l_iLastUserRequestID;
     unsigned int l_iCursorBrowseringX;
     unsigned int l_iCursorBrowseringY;
+    double l_dWhenWeHaveToSendAnswer;
+    struct timeval l_structTimeNow;
 
     l_bExit = FALSE;
+    l_bDuckServiceMessageAnswerWaiting = FALSE;
+    l_dWhenWeHaveToSendAnswer= 0;
     l_cClientAction = 0;
     l_iLastUserRequestID = 0;
     l_iCurrentSocketIndex = MAX_CONNECTED_CLIENTS - 1;
@@ -543,6 +548,16 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
                 /* Empty answer to avoid stopping ping-pong and then block read() of client */
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, 0, ' ');
+
+                if(strstr(l_cBufferTransmittedData, "\\_o<") != NULL)
+                {
+                    gettimeofday(&l_structTimeNow, NULL);
+                    if(l_bDuckServiceMessageAnswerWaiting == FALSE)
+                    {
+                        l_bDuckServiceMessageAnswerWaiting = TRUE;
+                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 + l_structTimeNow.tv_usec + p_structCommon->iCurrentUserColor * TIME_BETWEEN_TWO_REQUEST;
+                    }
+                }
             }
             else if(strstr(l_cBufferTransmittedData, "cli_srv ack0006") != NULL)
             {
@@ -603,7 +618,19 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         }
 
 
+        if(l_bDuckServiceMessageAnswerWaiting == TRUE && strstr(p_structCommon->sUserCommand, "sendmsg") == NULL && strstr(p_structCommon->sUserCommand, "resendtoall") == NULL)
+        {
+            gettimeofday(&l_structTimeNow, NULL); 
+            if(l_structTimeNow.tv_sec * 1000000 + l_structTimeNow.tv_usec > l_dWhenWeHaveToSendAnswer)
+            {
+                l_dWhenWeHaveToSendAnswer = 0;
+                l_bDuckServiceMessageAnswerWaiting = FALSE;
 
+                /* Send a dead duck */
+                snprintf(p_structCommon->sUserCommand, USER_COMMAND_LENGHT, "resendtoall PAN ! \\_x<");
+                p_structCommon->iLastUserRequestID++;
+            }
+        }
 
 
         /* If user wants to send a message, prepare the request */
@@ -735,6 +762,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     int l_iReturnedReadWriteValue;
     struct sockaddr_in l_structServAddr;
     struct hostent* l_structRemoteServer;
+    char l_bDuckServiceMessageAnswerWaiting;
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
     char l_cBufferToSendData[USER_COMMAND_LENGHT];
     char l_bQuit;
@@ -744,9 +772,13 @@ void* clientConnectionThread(void* p_structCommonShared)
     unsigned int l_iX;
     unsigned int l_iY;
     int l_iOldColor;
+    double l_dWhenWeHaveToSendAnswer;
+    struct timeval l_structTimeNow;
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
+    l_bDuckServiceMessageAnswerWaiting = FALSE;
+    l_dWhenWeHaveToSendAnswer= 0;
     l_structServAddr.sin_family = AF_INET;
     l_structServAddr.sin_port = htons(TCP_PORT);
     l_iReturnedReadWriteValue = 0;
@@ -901,11 +933,22 @@ void* clientConnectionThread(void* p_structCommonShared)
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
 
+                /* Special case of a Discovery message*/
+                if(strstr(l_cBufferTransmittedData, "\\_o<") != NULL || l_bDuckServiceMessageAnswerWaiting == TRUE)
+                {
+                    gettimeofday(&l_structTimeNow, NULL);
+
+                    if(l_bDuckServiceMessageAnswerWaiting == FALSE)
+                    {
+                        l_bDuckServiceMessageAnswerWaiting = TRUE;
+                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 + l_structTimeNow.tv_usec + p_structCommon->iCurrentUserColor * TIME_BETWEEN_TWO_REQUEST;
+                    }
+                }
+
                 /* Empty answer to avoid stoping ping-pong and then block read() of the server */
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0005 %4d %4d %c", 0, 0, 'Z');
             }
-            /* some UFO */
-            else
+            else             /* some UFO */
             {
                 log_info("Received message from server [%s]", l_cBufferTransmittedData);
 
@@ -915,6 +958,20 @@ void* clientConnectionThread(void* p_structCommonShared)
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
         }
 
+
+        if(l_bDuckServiceMessageAnswerWaiting == TRUE && strstr(p_structCommon->sUserCommand, "sendmsg") == NULL)
+        {
+            gettimeofday(&l_structTimeNow, NULL);
+            if(l_structTimeNow.tv_sec * 1000000 + l_structTimeNow.tv_usec > l_dWhenWeHaveToSendAnswer)
+            {
+                l_dWhenWeHaveToSendAnswer = 0;
+                l_bDuckServiceMessageAnswerWaiting = FALSE;
+
+                /* Send a dead duck */
+                snprintf(p_structCommon->sUserCommand, USER_COMMAND_LENGHT, "sendmsg PAN ! \\_x<");
+                p_structCommon->iLastUserRequestID++;
+            }
+        }
 
 
 

@@ -555,7 +555,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                     if(l_bDuckServiceMessageAnswerWaiting == FALSE)
                     {
                         l_bDuckServiceMessageAnswerWaiting = TRUE;
-                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 + l_structTimeNow.tv_usec + p_structCommon->iCurrentUserColor * TIME_BETWEEN_TWO_REQUEST;
+                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 +
+                                                    l_structTimeNow.tv_usec +
+                                                    (p_structCommon->iCurrentUserColor + rand() % 200) * TIME_BETWEEN_TWO_REQUEST;
                     }
                 }
             }
@@ -941,7 +943,9 @@ void* clientConnectionThread(void* p_structCommonShared)
                     if(l_bDuckServiceMessageAnswerWaiting == FALSE)
                     {
                         l_bDuckServiceMessageAnswerWaiting = TRUE;
-                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 + l_structTimeNow.tv_usec + p_structCommon->iCurrentUserColor * TIME_BETWEEN_TWO_REQUEST;
+                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 +
+                                                    l_structTimeNow.tv_usec +
+                                                    (p_structCommon->iCurrentUserColor + rand() % 200) * TIME_BETWEEN_TWO_REQUEST;
                     }
                 }
 

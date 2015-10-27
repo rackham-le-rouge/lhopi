@@ -564,6 +564,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 void playGame(structProgramInfo* p_structCommon)
 {
 	unsigned char l_cKey;
+    char* l_sTopText;
     unsigned int l_iWatchdog;
 	unsigned int l_iCursorX;
 	unsigned int l_iCursorY;
@@ -579,6 +580,8 @@ void playGame(structProgramInfo* p_structCommon)
     l_iCurrentSocketIndex = 0;
 	p_structCommon->iOffsetX = (p_structCommon->iCol / 2) - (p_structCommon->iSizeX / 2);
 	p_structCommon->iOffsetY = (p_structCommon->iRow / 2) - (p_structCommon->iSizeY / 2);
+    l_sTopText = (char*)malloc((p_structCommon->iCol + 1) * sizeof(char));
+    if(l_sTopText == NULL) exit(-ENOMEM);
 
 	p_structCommon->iCurrentUserColor = enumRouge; /* Main user, or server always red. If multiplayer and client, it receive another color suring connection  */
     p_structCommon->cUserMove = 0;
@@ -588,10 +591,25 @@ void playGame(structProgramInfo* p_structCommon)
 
 	do
 	{
+        snprintf(   l_sTopText,
+                    p_structCommon->iCol,
+                    "Your turn to play [ ] | Nickname %s",
+                    p_structCommon->sUserName);
+        if(p_structCommon->bMyTurnToPlay == TRUE)
+        {
+            l_sTopText[19] = 'X';
+        }
+        else
+        {
+            l_sTopText[19] = ' ';
+        }
+        topText(l_sTopText);
+
 		/* Display wursor each time */
 		displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, FALSE, p_structCommon->cGrid);
         pointCounting(p_structCommon->cGrid, p_structCommon->iPoints, p_structCommon->iSizeX, p_structCommon->iSizeY);
         displayRanking(p_structCommon->iPoints, p_structCommon->iCol, p_structCommon->iRow);
+        topText(l_sTopText);
 		refresh();
         usleep(TIME_BETWEEN_TWO_REQUEST);
 
@@ -774,6 +792,7 @@ void playGame(structProgramInfo* p_structCommon)
 		}
 	}while((l_cKey != 'q') && (l_cKey != 'Q'));		/* until q/Q pressed */
 
+    free(l_sTopText);
 
 }
 

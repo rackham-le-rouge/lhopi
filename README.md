@@ -5,9 +5,9 @@ Network playing is available, you can play with five frinds max at the same time
 
 
 Have to be add
-[ ] Man page
+[x] Man page
 [ ] Command line options
-[ ] Log bar information to say when it is your turn to play
+[x] Log bar information to say when it is your turn to play
 [x] Nicks of all connected users
 [x] Point counting at the end of a game
 [ ] Ability to restart a game after an end

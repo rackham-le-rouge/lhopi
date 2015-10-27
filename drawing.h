@@ -24,7 +24,7 @@
 void initBar(void);
 void disableBar(void);
 void enableBar(void);
-void topText(const char* p_sString);
+void topText(char* p_sString);
 void botText(const char* p_sString);
 int drawElement(int, int, unsigned char, int);
 void initColor(void);

@@ -40,7 +40,7 @@ void initBar(void)
 
 
 /** @brief Text of the top line */
-void topText(const char* p_sString)
+void topText(char* p_sString)
 {
         start_color();                                  /* start color mode */
         attron(COLOR_PAIR(2));

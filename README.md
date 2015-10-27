@@ -10,5 +10,5 @@ Have to be add
 [x] Log bar information to say when it is your turn to play
 [x] Nicks of all connected users
 [x] Point counting at the end of a game
-[ ] Ability to restart a game after an end
+[x] Ability to restart a game after an end
 [ ] Blocks-giving when a user decide to surrender

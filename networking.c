@@ -207,11 +207,13 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     struct sockaddr_in l_structServAddr;
     struct sockaddr_in l_structClientAddr;
     pthread_t l_structThreadID;
+    /*int l_iUselessOption; for the SO_REUSEPORT */
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
 
     l_iSocketCounter = 0;
+    /*l_iUselessOption = 1; for the SO_REUSEPORT */
     l_structServAddr.sin_family = AF_INET;
     l_structServAddr.sin_addr.s_addr = INADDR_ANY;                                        
     l_structServAddr.sin_port = htons(p_structCommon->iTcpPort);
@@ -238,6 +240,19 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
         close(l_iSocket);
         return 0;
     }
+
+    /* Can be used only with kernel > 3.9. I'm has been :/ */
+    /*
+    if ( setsockopt(l_iSocket, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), (char*)&l_iUselessOption, sizeof(l_iUselessOption)) < 0)
+    {
+        log_err("Socket-server: failed to set options to socket. errno %d", errno);
+        log_msg("Socket-server: Waiting thread closed on error");
+        pthread_mutex_destroy(p_structCommon->pthreadMutex);
+        p_structCommon->bMutexInitialized = FALSE;
+        close(l_iSocket);
+        return 0;
+    }
+    */
 
     if(listen(l_iSocket, MAX_CONNECTED_CLIENTS) < 0)
     {

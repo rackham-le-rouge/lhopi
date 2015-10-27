@@ -395,11 +395,13 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     unsigned int l_iIterator2;
     int l_iReturned;
     unsigned int l_iWatchdog;
+    unsigned int l_iCurrentSocketIndex;
 
     l_iIterator = 0;
     l_iReturned = 0;
     l_iIterator2 = 0;
     l_iWatchdog = 0;
+    l_iCurrentSocketIndex = 0;
     bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
     /* There is a new request, executable or not, so we set a new user request ID */
@@ -543,6 +545,60 @@ void userCommandExecute(structProgramInfo* p_structCommon)
         usleep(5 * TIME_BETWEEN_TWO_REQUEST);
 
         strcpy(p_structCommon->sUserName, l_sParameter);
+    }
+    else if(!strncmp(l_sFirstWord, "restart", strlen("restart")))
+    {
+        strcpy(l_sMessageToDisplay, "Have to close all connections");
+        logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
+        logBar(p_structCommon, DISPLAY, "");
+
+        p_structCommon->bNetworkDisconnectionRequiered = TRUE;
+
+        /* Started threads have to down this flag -- bMutexInitialized means we have at least one thread started */
+        while(p_structCommon->bNetworkDisconnectionRequiered == TRUE &&
+              p_structCommon->bMutexInitialized == TRUE)
+        {
+            usleep(TIME_BETWEEN_TWO_REQUEST);
+            for(l_iCurrentSocketIndex = 0; l_iCurrentSocketIndex < MAX_CONNECTED_CLIENTS ; l_iCurrentSocketIndex++)
+            {
+                if(p_structCommon->iClientsSockets[l_iCurrentSocketIndex] != 0)
+                {
+                    break;
+                }
+            }
+            if(l_iCurrentSocketIndex >= MAX_CONNECTED_CLIENTS - 1)
+            {
+                break;
+            }
+        }
+
+        if(p_structCommon->bMutexInitialized == TRUE)
+        {
+            pthread_mutex_destroy(p_structCommon->pthreadMutex);
+            p_structCommon->bMutexInitialized = FALSE;
+        }
+
+        strcpy(l_sMessageToDisplay, "Board data reset");
+        logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
+        logBar(p_structCommon, DISPLAY, "");
+
+        /* Reset some values */
+        p_structCommon->iCurrentUserColor = enumRouge;
+        p_structCommon->bMyTurnToPlay = TRUE;
+        p_structCommon->bNetworkDisconnectionRequiered = FALSE;
+        p_structCommon->iTcpPort++;
+
+        /* Reset the board */
+        cleanGridLayer(COLOR_MATRIX, POINT_ALL, COLOR_MATRIX, enumNoir, p_structCommon);
+        cleanGridLayer(TEXT_MATRIX, POINT_ALL, TEXT_MATRIX, ' ', p_structCommon);
+        cleanGridLayer(LOOPALGO_MATRIX, POINT_ALL, LOOPALGO_MATRIX, POINT_EMPTY, p_structCommon);
+        cleanGridLayer(SYNC_MATRIX, POINT_ALL, SYNC_MATRIX, POINT_EMPTY, p_structCommon);
+        drawTheBoardGame(p_structCommon);
+
+        snprintf(   l_sMessageToDisplay,
+                    USER_COMMAND_LENGHT,
+                    "Restart done. For a new game use port %d to join the game.",
+                    p_structCommon->iTcpPort);
     }
     else
     {
@@ -693,6 +749,13 @@ void playGame(structProgramInfo* p_structCommon)
                     }
                 }   
                 break;
+
+                /* Normally, network.c have clean the mutex at the end of all connexions */
+                if(p_structCommon->bMutexInitialized == TRUE)
+                {
+                    pthread_mutex_destroy(p_structCommon->pthreadMutex);
+                    p_structCommon->bMutexInitialized = FALSE;
+                }
             }
 			case ' ':
 			{

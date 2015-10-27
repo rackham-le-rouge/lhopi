@@ -1,0 +1,76 @@
+.\" Manpage for Lhopi
+.\" Contact jerome.grard@neuf.fr
+.TH man 8 "Oct 2015" "1.0" "Lhopi usage"
+.SH NAME
+Lhopi \- A kind of game of Go with some network functions to play with friends
+.SH SYNOPSIS
+pnd [-h] [-x X] [-y Y] [-n nick] [-p port]
+.SH DESCRIPTION
+Lhopi is a kind of Go game with multiplayers features. There is a grid (size can be defined with commandline options). You can put one rock per turn, and if a loop was made, all clean places inside the loop are filled with your rocks (with your color). There is a real-time ranking, the user who have the greatest number of rocks win the game. The goal is to make the greatest loops ! A loop is only made with rock of your color, and blocks inside with another color remains to their owners even after the loop completion. During the game, users can talk to each others, have a nickname and change it ; they also can surrender and give their rocks to another player.
+.SH OPTIONS
+All options in the command line :
+.B
+.IP -h
+Display a quick help.
+.B
+.IP -x
+Set the lenght of the grid.
+.B
+.IP -y
+Set the height of the grid.
+.B
+.IP -n
+Set the default nickname of the current user.
+.B
+.IP -p
+Set the used port to create the connection. Default one is 5555.
+
+.SH USAGE
+.HP
+The program have a internal command typing system. To enter a command, press the ':' key, a prompt pop up at the bottom of the screen. You can
+enter a command picked in the list below :
+
+.IP
+bemaster
+To became a server (in the server / client relation). Other user are going to connect to you.
+
+.IP
+connect [ip]
+To be a client, and connect to the [IP], we expect to find a server. The port defined in the conf.h is used. If no IP was provided, localhost is
+used by default. IV4 or IpV6 address can be used.
+
+.IP
+nick newnickname
+To change your nickname. The default nickname is n00b.
+
+.IP
+surrender nick
+To surrender, leave the game and give all your blocks to the user with the nickname nick
+
+.IP
+quit
+To leave the game. Your rocks remains on the grid and nobody can take them.
+
+.IP
+sendmsg my_message
+Send a message to evrybody. The message will appear in the log bar with your name
+
+.IP
+sendmsg \_o<
+This a discovery message, used to force all users to send back a message in order to check connectivity. Do not abuse...
+
+.HP
+A game begins with a user who declare to be the server, another users on another computers uses the connect command to log in. The server
+receive a notification. When all clients joined the game, the server can send the discovery command to check presence of all users and make
+their nicks be displayed in the ranking table on the right part of the screen. Users plays one after one and when until the end of the game.
+The goal is to put your color on the greatest number of blocks, and to manage that, you have to make loops ; because all empty positions in
+a valid loop is filled by your color, and there is so many points earned !
+
+.SH CONFIGURATION
+The configuration is in conf.h ; you have to modify this file, clean and rebuild all the project to have the modifications applied. In this
+file you can set colors, default size of the grid, default TCP port, character used to make the cursor...
+
+
+.SH AUTHOR
+Jerome GRARD (jerome.grard@neuf.fr)
+

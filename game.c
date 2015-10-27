@@ -671,6 +671,12 @@ void playGame(structProgramInfo* p_structCommon)
 
 		l_cKey = getch();
 
+        /* In order to allow an alone player to play alone */
+        if(p_structCommon->bMutexInitialized == FALSE)
+        {
+            p_structCommon->bMyTurnToPlay = TRUE;
+        }
+
 		switch(l_cKey)
 		{
 

@@ -430,12 +430,12 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     /* Command execution */
     if(!strncmp(l_sFirstWord, "bemaster", strlen("bemaster")))
     {
-        strcpy(l_sMessageToDisplay, "Gonna be the game server");
+        strncpy(l_sMessageToDisplay, "Gonna be the game server", USER_COMMAND_LENGHT);
         l_iReturned = tcpSocketServer(p_structCommon);
         if(l_iReturned != 0)
         {
             log_err("Init of server failed. Abort the order%s", " ");
-            strcpy(l_sMessageToDisplay, "Server mode failed to start...");
+            strncpy(l_sMessageToDisplay, "Server mode failed to start...", USER_COMMAND_LENGHT);
         }
         else
         {
@@ -477,8 +477,16 @@ void userCommandExecute(structProgramInfo* p_structCommon)
 
         if(l_iWatchdog >= 1000)
         {
-            log_msg("Timeout during client connection to the server.");
-            strcpy(l_sMessageToDisplay, "Timeout during client connection to the server");
+            log_info("Timeout during client connection to the server. %s:%d mode: %s", 
+                    p_structCommon->sServerAddress,
+                    p_structCommon->iTcpPort,
+                    (p_structCommon->bIpV4 == TRUE) ? "IpV4" : "IpV6");
+            snprintf(l_sMessageToDisplay,
+                    USER_COMMAND_LENGHT,
+                    "Timeout during client connection to the server %s:%d mode: %s",
+                    p_structCommon->sServerAddress,
+                    p_structCommon->iTcpPort,
+                    (p_structCommon->bIpV4 == TRUE) ? "IpV4" : "IpV6");
         }
         else
         {

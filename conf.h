@@ -201,6 +201,8 @@ typedef enum
   * Member 'iLastUserRequest' In order to avoid twice or more execution of the same user request (entered with ':' operator during the game)
   * @var structProgramInfo_::iPoints
   * Member 'iPoints' Point counting during the play. It is a local operation
+  * @var structProgramInfo_::iTcpPort
+  * Member 'iTcpPort' The value of the port to use for network playing. Default value is TCP_PORT. This value can be redefined with the command line.
   * @var structProgramInfo_::padding
   * Member 'padding' contains only empty spaces in order to guarantee the memory alignement.
   */
@@ -218,6 +220,7 @@ typedef struct structProgramInfo_
     unsigned int  iLastXUsed;
     unsigned int  iLastYUsed;
     unsigned int  iLastUserRequestID;
+    unsigned int  iTcpPort;
     int           iServerSocket;
     int           iPoints[MAX_CONNECTED_CLIENTS];
     int*          iClientsSockets;

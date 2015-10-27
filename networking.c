@@ -163,7 +163,7 @@ void threadSafeLogBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarW
 
 
 /** @brief PUBLIC INTERFACE
-  * Start this function in order to have a TCP server, binding port TCP_PORT
+  * Start this function in order to have a TCP server, binding port TCP_PORT (by default)
   * This function starts a thread in charge of waiting for incoming connections.
   * @param p_structCommon : all usefull data of the program
   * @return -1 if error during starting the waiting thread, 0 if the thread starts correctly. Nothing matter with the TCP / Socket state
@@ -214,7 +214,7 @@ void* waitingForNewConnectionsThread(void* p_structCommonShared)
     l_iSocketCounter = 0;
     l_structServAddr.sin_family = AF_INET;
     l_structServAddr.sin_addr.s_addr = INADDR_ANY;                                        
-    l_structServAddr.sin_port = htons(TCP_PORT);
+    l_structServAddr.sin_port = htons(p_structCommon->iTcpPort);
 
     l_iSocket = socket(AF_INET, SOCK_STREAM, 0); 
 
@@ -722,7 +722,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
 
 /** @brief PUBLIC INTERFACE
-  * Start this function in order to have a TCP client, using port TCP_PORT
+  * Start this function in order to have a TCP client, using port TCP_PORT (by default)
   * This function starts a thread in charge of ask connection to a server.
   * @param p_structCommon : all usefull data of the program
   * @return -1 if error during starting the waiting thread, 0 if the thread starts correctly. Nothing matter with the TCP / Socket state
@@ -782,7 +782,7 @@ void* clientConnectionThread(void* p_structCommonShared)
     l_bDuckServiceMessageAnswerWaiting = FALSE;
     l_dWhenWeHaveToSendAnswer= 0;
     l_structServAddr.sin_family = AF_INET;
-    l_structServAddr.sin_port = htons(TCP_PORT);
+    l_structServAddr.sin_port = htons(p_structCommon->iTcpPort);
     l_iReturnedReadWriteValue = 0;
     l_bQuit = FALSE;
     l_bHaveToGetStartingInformationsFromServer = TRUE;

@@ -63,12 +63,17 @@ int extractConfigFromCommandLine(int argc, char** argv, structProgramInfo* p_str
                                 p_structCommon->iSizeX = (!strcmp(argv[l_iTmp], "-s")) ? (unsigned int)atoi(argv[l_iTmp + 1]) : p_structCommon->iSizeX;
                                 p_structCommon->iSizeY = (!strcmp(argv[l_iTmp], "-s")) ? (unsigned int)atoi(argv[l_iTmp + 2]) : p_structCommon->iSizeY;
                                 /*if(!strcmp(argv[l_iTmp], "-s")) {LOG_WRITE_STRING_LONG("C.LINE: ", (long)p_structCommon->iSizeX)}*/
+                                p_structCommon->iTcpPort = (!strcmp(argv[l_iTmp], "-p")) ? (unsigned int)atoi(argv[l_iTmp + 1]) : p_structCommon->iTcpPort;
+                                if(!strcmp(argv[l_iTmp], "-n"))
+                                {
+                                    strncpy(p_structCommon->sUserName, argv[l_iTmp + 1], PARAMETER_MAX_LENGHT);
+                                }
 
                                 /* Display help */
                                 if(!strcmp(argv[l_iTmp], "-h"))
                                 {
                                         endwin();
-                                        printf("Lhopi - Command line use : lhopi [-h{help}] [-s Width Height{new dimensions}]\n");
+                                        printf("Lhopi - Command line use : lhopi [-h{help}] [-s Width Height{new dimensions}] [-n nick] [p port]\n");
                                         /* Quit function now, then kill the app in order to display help message */
                                         return 1;
                                 }
@@ -224,6 +229,7 @@ int main(int argc, char** argv)
     l_structCommon->bAbleToRestartGame = FALSE;
     l_structCommon->pthreadMutex = NULL;
     l_structCommon->iLastUserRequestID = 0;
+    l_structCommon->iTcpPort = TCP_PORT;
     l_structCommon->bMutexInitialized = FALSE;
     l_structCommon->bNetworkDisconnectionRequiered = FALSE;
     l_structCommon->sUserName = (char*)malloc(PARAMETER_MAX_LENGHT * sizeof(char));
@@ -247,11 +253,15 @@ int main(int argc, char** argv)
         exit(ENOMEM);
     }
 
-	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)
-	{
-		/* Kill app before ncurse init, because user want to display the help message */
-		exit(EXIT_FAILURE);
-	}
+    if(l_structCommon->sUserName == NULL)
+    {
+        exit(ENOMEM);
+    }
+    else
+    {
+        bzero(l_structCommon->sUserName, PARAMETER_MAX_LENGHT);
+        strcpy(l_structCommon->sUserName, "n00b");
+    }
 
     if(l_structCommon->iClientsSockets == NULL)
     {
@@ -263,15 +273,11 @@ int main(int argc, char** argv)
         exit(ENOMEM);
     }
 
-    if(l_structCommon->sUserName == NULL)
-    {
-        exit(ENOMEM);
-    }
-    else
-    {
-        bzero(l_structCommon->sUserName, PARAMETER_MAX_LENGHT);
-        strcpy(l_structCommon->sUserName, "n00b");
-    }
+	if(extractConfigFromCommandLine(argc, argv, l_structCommon) != 0)
+	{
+		/* Kill app before ncurse init, because user want to display the help message */
+		exit(EXIT_FAILURE);
+	}
 
     /*  Start the graphic mode */
     initscr();

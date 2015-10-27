@@ -659,6 +659,7 @@ void playGame(structProgramInfo* p_structCommon)
         {
             l_sTopText[19] = ' ';
         }
+        initBar();
         topText(l_sTopText);
 
 		/* Display wursor each time */

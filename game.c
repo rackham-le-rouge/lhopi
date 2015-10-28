@@ -607,7 +607,7 @@ void userCommandExecute(structProgramInfo* p_structCommon)
         snprintf(l_sMessageToDisplay,
                 USER_COMMAND_LENGHT,
                 "Port changed to %d",
-                p_structCommon->iTcpPort,
+                p_structCommon->iTcpPort);
     }
     else
     {

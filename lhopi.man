@@ -48,6 +48,14 @@ surrender nick
 To surrender, leave the game and give all your blocks to the user with the nickname nick
 
 .IP
+port [newport]
+Change the used port during the game.
+
+.IP
+restart
+To restart a game. Because a port can't be used twice, we add one automatically. If clients wants to join again, they have to change their port with the in-game command 'port'
+
+.IP
 quit
 To leave the game. Your rocks remains on the grid and nobody can take them.
 

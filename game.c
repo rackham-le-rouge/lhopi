@@ -600,6 +600,15 @@ void userCommandExecute(structProgramInfo* p_structCommon)
                     "Restart done. For a new game use port %d to join the game.",
                     p_structCommon->iTcpPort);
     }
+    else if(!strncmp(l_sFirstWord, "port", strlen("port")))
+    {
+        p_structCommon->iTcpPort = atoi(l_sParameter);
+
+        snprintf(l_sMessageToDisplay,
+                USER_COMMAND_LENGHT,
+                "Port changed to %d",
+                p_structCommon->iTcpPort,
+    }
     else
     {
         /* Other command */

@@ -163,8 +163,11 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
 	unsigned int l_iIterateur;
     unsigned int l_iCursorY;
     unsigned int l_iCursorX;
+    char l_sEmptyLine[21];
 
 	l_iIterateur = 0;
+    memset(l_sEmptyLine, ' ', 20);
+    l_sEmptyLine[20] = '\0';
 
 	/* Clean bars */
 	initBar();
@@ -217,6 +220,7 @@ void drawTheBoardGame(structProgramInfo* p_structCommon)
     {
         /* Draw the vertical lines */
         mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iIterateur, p_structCommon->iCol - 22, ACS_VLINE);
+        mvprintw((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iIterateur, p_structCommon->iCol - 21, "%s", l_sEmptyLine);
         mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + l_iIterateur, p_structCommon->iCol - 1, ACS_VLINE);
     }
     mvaddch((p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + MAX_CONNECTED_CLIENTS + 1, p_structCommon->iCol - 22, ACS_LLCORNER );
@@ -318,7 +322,8 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
     l_iUserNameIndex = 0;
     l_iLastUserColor = 0;
     bzero(l_sBuffer, USER_COMMAND_LENGHT + 3);
-    bzero(l_sUserName, 22);
+    memset(l_sUserName, ' ', 20);
+    l_sUserName[20] = '\0';
     strcpy(l_sBuffer, p_sLineContent);
 	for (l_iIterateur=0; l_iIterateur < p_structCommon->iCol ; l_iIterateur++)
 	{
@@ -357,7 +362,8 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
                 }
 
                 l_iUserNameIndex = 0;
-                bzero(l_sUserName, 22);
+                memset(l_sUserName, ' ', 20);
+                l_sUserName[20] = '\0';
                 l_iColor = enumLogLine;
             }
         }
@@ -375,7 +381,7 @@ void drawLogLine(structProgramInfo* p_structCommon, unsigned int p_iLineNumber, 
         else if((l_iIterateur > 0 && l_sBuffer[l_iIterateur - 1] != '#' && l_sBuffer[l_iIterateur - 1] != '^') ||       /* On any char of the string */
                 (l_iIterateur == 0 && l_sBuffer[l_iIterateur] != '#' && l_sBuffer[l_iIterateur] != '^'))                /* On the first char */
         {
-            if(l_iColor != enumLogLine && l_iUserNameIndex < 21)
+            if(l_iColor != enumLogLine && l_iUserNameIndex < 20)
             {
                 l_sUserName[l_iUserNameIndex++] = p_sLineContent[l_iIterateur];
             }
@@ -429,7 +435,7 @@ void printUserName(char* p_sUserName, unsigned int p_iUserColor, structProgramIn
     unsigned int l_iIterator;
 
     /* Use 20 because it is the max len of nick displayed */
-    for(l_iIterator = 0; l_iIterator < 20; l_iIterator++)
+    for(l_iIterator = 0; l_iIterator < 18; l_iIterator++)
     {
         drawElement(p_structCommon->iCol - 19 + l_iIterator, (p_structCommon->iRow - MAX_CONNECTED_CLIENTS + 2) / 2 + 1 + p_iUserColor - enumLetterRed,  *(p_sUserName + l_iIterator), p_iUserColor);
     }

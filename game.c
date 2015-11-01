@@ -658,7 +658,8 @@ void playGame(structProgramInfo* p_structCommon)
 	{
         snprintf(   l_sTopText,
                     p_structCommon->iCol,
-                    "Your turn to play [ ] | Nickname %s",
+                    "Your turn to play [ ] | Connected [ ] | Current port [%d] | Nickname %s",
+                    p_structCommon->iTcpPort,
                     p_structCommon->sUserName);
         if(p_structCommon->bMyTurnToPlay == TRUE)
         {
@@ -667,6 +668,15 @@ void playGame(structProgramInfo* p_structCommon)
         else
         {
             l_sTopText[19] = ' ';
+        }
+
+        if(p_structCommon->bMutexInitialized == TRUE)
+        {
+            l_sTopText[35] = 'X';
+        }
+        else
+        {
+            l_sTopText[35] = ' ';
         }
         initBar();
         topText(l_sTopText);

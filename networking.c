@@ -438,7 +438,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 l_bExit = TRUE;
             }
             /* Messaging function */
-            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)// && strlen(l_cBufferToSendData) != 0)
+            if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)// && strlen(l_cBufferToSendData) != 0)
             {
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
@@ -463,7 +463,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 }
             }
             /* the new ping / pong system. Described in the intro help of this document */
-            else if(strstr(l_cBufferTransmittedData, "r0005") != NULL)
+            if(strstr(l_cBufferTransmittedData, "r0005") != NULL)
             {
                 /* Receive position and action done by user */
                 l_iCursorX = atoi(strstr(l_cBufferTransmittedData, "r0005") + strlen("r0005") + 1);
@@ -598,6 +598,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             {
                 l_iClientRequestInit = 4;
             }
+            else if(strstr(l_cBufferTransmittedData, "cli_srv ack0004") != NULL)
+            {
+                l_iClientRequestInit = 5;
+            }
             else if(strstr(l_cBufferTransmittedData, "cli_srv ack0006") != NULL)
             {
                 p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 3;
@@ -636,11 +640,13 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             case 3:
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0003");
                 break;
-            /* At the end of the starting, initialize new ping-pong system to keep connection alive. send an empty ack0005 request to have a r0005 replied etc... */
             case 4:
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv r0004");
+                break;
+            /* At the end of the starting, initialize new ping-pong system to keep connection alive. send an empty ack0005 request to have a r0005 replied etc... */
+            case 5:
                 l_iClientRequestInit = 0;
                 snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, enumNoir, ' ');
-                break;
             default:
                 log_msg("Server: unexpected starting runlevel reached");
                 break;
@@ -926,6 +932,16 @@ void* clientConnectionThread(void* p_structCommonShared)
             {
                 p_structCommon->bAbleToRestartGame = TRUE;
                 strcpy(l_cBufferToSendData, "cli_srv ack0003");
+            }
+            else if(strstr(l_cBufferTransmittedData, "r0004") != NULL)
+            {
+                snprintf(l_cBufferToSendData,
+                                USER_COMMAND_LENGHT,
+                                "cli_srv ack0004 srv_cli msg ##%d%s##%d Hi, i've just joined the game !",
+                                p_structCommon->iCurrentUserColor + 20,
+                                p_structCommon->sUserName,
+                                20);
+                p_structCommon->iLastUserRequestID++;
             }
             /* the new ping-pong system to have an connection alive all the time */
             else if(strstr(l_cBufferTransmittedData, "r0006") != NULL)

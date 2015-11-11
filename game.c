@@ -741,18 +741,22 @@ void playGame(structProgramInfo* p_structCommon)
             {
                 /* Command mode */
                 logBar(p_structCommon, CLEAN_L2, "");
+                if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_lock(p_structCommon->pthreadMutex);}
                 logBar(p_structCommon, DISPLAY, "");
+                if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_unlock(p_structCommon->pthreadMutex);}
 
                 /* Get command from the user, the command set by the user will be saved in p_structCommon->sUserCommand */
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
                 userCommandExecute(p_structCommon);
 
+                if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_lock(p_structCommon->pthreadMutex);}
                 displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
                 refresh();
 
                 /* Clean the screen */
                 logBar(p_structCommon, DISPLAY, "");
+                if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_unlock(p_structCommon->pthreadMutex);}
                 break;
             }
             case 'q':
@@ -811,9 +815,11 @@ void playGame(structProgramInfo* p_structCommon)
 
                 /* Draw the block of the current user (the other blocks are draw by
                     another function) */
+                if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_lock(p_structCommon->pthreadMutex);}
 				drawElement(l_iCursorX + p_structCommon->iOffsetX, l_iCursorY + p_structCommon->iOffsetY,
 					p_structCommon->cGrid[TEXT_MATRIX][l_iCursorY][l_iCursorX],
 					p_structCommon->iCurrentUserColor);
+                if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_unlock(p_structCommon->pthreadMutex);}
 
                 /* Check neighborhood - If there is two contigous blocks of the player's
                    color that means there is maybee a loop */

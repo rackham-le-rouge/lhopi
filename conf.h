@@ -33,6 +33,7 @@
 #include <netdb.h> 
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 /*   Avaiable colors    *
 

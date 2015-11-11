@@ -26,6 +26,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared);
 void* waitingForNewConnectionsThread(void* p_structCommonShared);
 void* clientConnectionThread(void* p_structCommonShared);
 void threadSafeLogBar(structProgramInfo* p_structCommon, g_enumLogBar p_enumBarWantedAction, const char* p_sNewLine);
+void setNonBlockingSocket(int p_iSocket);
 
 
 

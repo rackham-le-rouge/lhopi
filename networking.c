@@ -121,8 +121,27 @@ extern FILE* g_FILEOutputLogStream;
 
 
 
+/**
+ * @brief Put the provided socket in non-blocking mode
+ * The non blocking mode make the read / write function applied to the socket non-bloking, thus
+ * if there is no data gathered by the read function, the len equals 0 and the algo stills works.
+ * Because we use only one socket to do the send/receive data with a client, we have to use this function
+ * to bypass a read in order to do a write of the usefull information
+ * @param p_iSocket : socket to modify
+ */
+void setNonBlockingSocket(int p_iSocket)
+{
+    int l_iFlags;
 
+    l_iFlags = fcntl(p_iSocket, F_GETFL, 0);
 
+    if (l_iFlags == -1)
+    {
+        l_iFlags = 0;
+    }
+
+    fcntl(p_iSocket, F_SETFL, l_iFlags | O_NONBLOCK);
+}
 
 /*******************************************
  *
@@ -393,6 +412,9 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     threadSafeLogBar(p_structCommon, ADD_LINE, "New user joined");
     threadSafeLogBar(p_structCommon, DISPLAY, "");
 
+    /* Put the socket in non-blocking mode in order to fix network functions */
+    setNonBlockingSocket(p_structCommon->iClientsSockets[l_iCurrentSocketIndex]);
+
     /* Main loop for handling the connection */
     while(l_bExit != TRUE)
     {
@@ -414,6 +436,31 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 
                 log_info("Closing socket. Received order :  %s", l_cBufferTransmittedData);
                 l_bExit = TRUE;
+            }
+            /* Messaging function */
+            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)// && strlen(l_cBufferToSendData) != 0)
+            {
+                threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
+                threadSafeLogBar(p_structCommon, DISPLAY, "");
+
+                /* Prepare server to resend message to all other users, and give it a new user command ID  */
+                snprintf(p_structCommon->sUserCommand, USER_COMMAND_LENGHT, "resendtoall %s", strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
+                p_structCommon->iLastUserRequestID++;
+
+                /* Empty answer to avoid stopping ping-pong and then block read() of client */
+                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, enumNoir, ' ');
+
+                if(strstr(l_cBufferTransmittedData, "\\_o<") != NULL)
+                {
+                    gettimeofday(&l_structTimeNow, NULL);
+                    if(l_bDuckServiceMessageAnswerWaiting == FALSE)
+                    {
+                        l_bDuckServiceMessageAnswerWaiting = TRUE;
+                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 +
+                                                    l_structTimeNow.tv_usec +
+                                                    (p_structCommon->iCurrentUserColor + rand() % 200) * TIME_BETWEEN_TWO_REQUEST;
+                    }
+                }
             }
             /* the new ping / pong system. Described in the intro help of this document */
             else if(strstr(l_cBufferTransmittedData, "r0005") != NULL)
@@ -551,31 +598,6 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             {
                 l_iClientRequestInit = 4;
             }
-            /* Messaging function */
-            else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)// && strlen(l_cBufferToSendData) != 0)
-            {
-                threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
-                threadSafeLogBar(p_structCommon, DISPLAY, "");
-
-                /* Prepare server to resend message to all other users, and give it a new user command ID  */
-                snprintf(p_structCommon->sUserCommand, USER_COMMAND_LENGHT, "resendtoall %s", strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
-                p_structCommon->iLastUserRequestID++;
-
-                /* Empty answer to avoid stopping ping-pong and then block read() of client */
-                snprintf(l_cBufferToSendData, USER_COMMAND_LENGHT, "cli_srv ack0005 %4d %4d %d %c", 0, 0, enumNoir, ' ');
-
-                if(strstr(l_cBufferTransmittedData, "\\_o<") != NULL)
-                {
-                    gettimeofday(&l_structTimeNow, NULL);
-                    if(l_bDuckServiceMessageAnswerWaiting == FALSE)
-                    {
-                        l_bDuckServiceMessageAnswerWaiting = TRUE;
-                        l_dWhenWeHaveToSendAnswer = l_structTimeNow.tv_sec * 1000000 +
-                                                    l_structTimeNow.tv_usec +
-                                                    (p_structCommon->iCurrentUserColor + rand() % 200) * TIME_BETWEEN_TWO_REQUEST;
-                    }
-                }
-            }
             else if(strstr(l_cBufferTransmittedData, "cli_srv ack0006") != NULL)
             {
                 p_structCommon->bWhoHaveToPlay[l_iCurrentSocketIndex] = 3;
@@ -590,6 +612,10 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
                 log_info("Socket [%d] Thread index [%d] : Received message from client [%s]", p_structCommon->iClientsSockets[l_iCurrentSocketIndex], l_iCurrentSocketIndex, l_cBufferTransmittedData);
             }
             bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
+        }
+        else
+        {
+            log_msg("No data received for this turn");
         }
 
 

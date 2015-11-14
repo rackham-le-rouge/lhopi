@@ -384,8 +384,9 @@ void userCommandGetter(structProgramInfo* p_structCommon)
 /**
   * @brief Function to execute the command wanted by the user (and setted by the line prompt inside the program)
   * @param p_structCommon : Struct with all program informations
+  * @return -1 if nothing changed. And a value between these two limits if we decide to change X or Y value : [0 -> p_structCommon->sizeX[ if we set X coords and [p_structCommon->sizeX ; p_structCommon->sizeX + p_structCommon->sizeY[ if we set Y
   */
-void userCommandExecute(structProgramInfo* p_structCommon)
+int userCommandExecute(structProgramInfo* p_structCommon)
 {
     /* extract the command from the command line */
     char l_sFirstWord[64];          /* Sometimes we have to set limits to the fools */
@@ -394,6 +395,8 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     unsigned int l_iIterator;
     unsigned int l_iIterator2;
     int l_iReturned;
+    unsigned int l_iTmp;
+    unsigned int l_iToReturn;
     unsigned int l_iWatchdog;
     unsigned int l_iCurrentSocketIndex;
 
@@ -401,6 +404,8 @@ void userCommandExecute(structProgramInfo* p_structCommon)
     l_iReturned = 0;
     l_iIterator2 = 0;
     l_iWatchdog = 0;
+    l_iTmp = 0;
+    l_iToReturn = -1;
     l_iCurrentSocketIndex = 0;
     bzero(l_sMessageToDisplay, USER_COMMAND_LENGHT);
 
@@ -609,6 +614,38 @@ void userCommandExecute(structProgramInfo* p_structCommon)
                 "Port changed to %d",
                 p_structCommon->iTcpPort);
     }
+    else if(!strncmp(l_sFirstWord, "movex", strlen("movex")))
+    {
+        l_iTmp = atoi(l_sParameter);
+        if(l_iTmp >= p_structCommon->iSizeX)
+        {
+            snprintf(l_sMessageToDisplay,
+                    USER_COMMAND_LENGHT,
+                    "Impossible : Out of grid ! Max is %d",
+                    p_structCommon->iSizeX - 1);
+            l_iToReturn = -1;
+        }
+        else
+        {
+            l_iToReturn = l_iTmp;
+        }
+    }
+    else if(!strncmp(l_sFirstWord, "movey", strlen("movey")))
+    {
+        l_iTmp = atoi(l_sParameter);
+        if(l_iTmp >= p_structCommon->iSizeY)
+        {
+            snprintf(l_sMessageToDisplay,
+                    USER_COMMAND_LENGHT,
+                    "Impossible : Out of grid ! Max is %d",
+                    p_structCommon->iSizeY - 1);
+            l_iToReturn = -1;
+        }
+        else
+        {
+            l_iToReturn = p_structCommon->iSizeX + l_iTmp;
+        }
+    }
     else
     {
         /* Other command */
@@ -620,6 +657,8 @@ void userCommandExecute(structProgramInfo* p_structCommon)
         logBar(p_structCommon, ADD_LINE, l_sMessageToDisplay);
         logBar(p_structCommon, DISPLAY, "");
     }
+
+    return l_iToReturn;
 }
 
 
@@ -635,8 +674,12 @@ void playGame(structProgramInfo* p_structCommon)
 	unsigned int l_iCursorY;
     unsigned int l_iMovement;	/* store the wanted move, if impossible this variable */
     unsigned int l_iCurrentSocketIndex;		/* allow the program to go back */
+    int l_iNewCoordinates;
+    char l_bForceRedraw;
 
+    l_bForceRedraw = TRUE;
 	l_cKey = 0;
+    l_iNewCoordinates = -1;
 	l_iMovement = 0;
 	l_iCursorX = 1;
 	l_iCursorY = 1;
@@ -740,6 +783,7 @@ void playGame(structProgramInfo* p_structCommon)
             case ':':
             {
                 /* Command mode */
+                l_bForceRedraw = TRUE;
                 logBar(p_structCommon, CLEAN_L2, "");
                 if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_lock(p_structCommon->pthreadMutex);}
                 logBar(p_structCommon, DISPLAY, "");
@@ -748,10 +792,26 @@ void playGame(structProgramInfo* p_structCommon)
                 /* Get command from the user, the command set by the user will be saved in p_structCommon->sUserCommand */
                 userCommandGetter(p_structCommon);
                 /* Analyse user command */
-                userCommandExecute(p_structCommon);
+                l_iNewCoordinates = userCommandExecute(p_structCommon);
+                if(l_iNewCoordinates > - 1)
+                {
+                    if(l_iNewCoordinates > - 1 && l_iNewCoordinates < (signed)p_structCommon->iSizeX)
+                    {
+                        /* belongs to the interval [0 ; p_structCommon->iSizeX[ ==> redefine X coordinate */
+                        l_iCursorX = l_iNewCoordinates;
+                        l_bForceRedraw = FALSE;
+                    }
+                    else if(l_iNewCoordinates >= (signed)p_structCommon->iSizeX &&
+                            l_iNewCoordinates < (signed)p_structCommon->iSizeX + (signed)p_structCommon->iSizeY)
+                    {
+                        /* belongs to the interval [p_structCommon->iSizeX ; p_structCommon->iSizeX + p_structCommon->iSizeY[ ==> redefine Y coordinate */
+                        l_iCursorY = l_iNewCoordinates - (p_structCommon->iSizeX);
+                        l_bForceRedraw = FALSE;
+                    }
+                }
 
                 if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_lock(p_structCommon->pthreadMutex);}
-                displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, TRUE, p_structCommon->cGrid);
+                displayCursor(l_iCursorX, l_iCursorY, p_structCommon->iOffsetX, p_structCommon->iOffsetY, l_bForceRedraw, p_structCommon->cGrid);
                 refresh();
 
                 /* Clean the screen */

@@ -56,6 +56,14 @@ restart
 To restart a game. Because a port can't be used twice, we add one automatically. If clients wants to join again, they have to change their port with the in-game command 'port'
 
 .IP
+movex X
+Move your cursor on our current line to the new X position.
+
+.IP
+movey Y
+Move your cursor on our current column to the new Y position (line number)
+
+.IP
 quit
 To leave the game. Your rocks remains on the grid and nobody can take them.
 

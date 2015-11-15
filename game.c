@@ -723,6 +723,7 @@ void playGame(structProgramInfo* p_structCommon)
         }
 
         if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_lock(p_structCommon->pthreadMutex);}
+        usleep(TIME_BETWEEN_TWO_REQUEST);
         initBar();
         topText(l_sTopText);
 
@@ -732,8 +733,8 @@ void playGame(structProgramInfo* p_structCommon)
         displayRanking(p_structCommon->iPoints, p_structCommon->iCol, p_structCommon->iRow);
         topText(l_sTopText);
 		refresh();
-        if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_unlock(p_structCommon->pthreadMutex);}
         usleep(TIME_BETWEEN_TWO_REQUEST);
+        if(p_structCommon->bMutexInitialized != TRUE) {pthread_mutex_unlock(p_structCommon->pthreadMutex);}
 
 		l_cKey = getch();
 

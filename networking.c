@@ -359,6 +359,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
 {
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
 
+    char* l_cCursor;
     char l_cBufferTransmittedData[USER_COMMAND_LENGHT];
     char l_cBufferToSendData[USER_COMMAND_LENGHT];
     char l_bExit;
@@ -379,6 +380,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
     double l_dWhenWeHaveToSendAnswer;
     struct timeval l_structTimeNow;
 
+    l_cCursor = NULL;
     l_bExit = FALSE;
     l_bDuckServiceMessageAnswerWaiting = FALSE;
     l_dWhenWeHaveToSendAnswer= 0;
@@ -440,6 +442,12 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
             /* Messaging function */
             if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)// && strlen(l_cBufferToSendData) != 0)
             {
+                l_cCursor = strstr(l_cBufferTransmittedData, "\\0");
+                if(l_cCursor != NULL)
+                {
+                    memset(l_cCursor, '\0', 2);
+                }
+
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
 
@@ -687,7 +695,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
-                            "srv_cli msg ##%d%s##%d %s",
+                            "srv_cli msg ##%d%s##%d %s\\0",
                             p_structCommon->iCurrentUserColor + 20,
                             p_structCommon->sUserName,
                             20,
@@ -701,7 +709,7 @@ void* tcpSocketServerConnectionHander(void* p_structCommonShared)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
-                            "srv_cli msg %s",
+                            "srv_cli msg %s\\0",
                             strstr(p_structCommon->sUserCommand, "resendtoall ") + strlen("resendtoall "));
 
             /* local l_iLastUserRequestID update */
@@ -807,6 +815,7 @@ void* clientConnectionThread(void* p_structCommonShared)
 {
     structProgramInfo* p_structCommon = (structProgramInfo*)p_structCommonShared;
 
+    char* l_cCursor;
     int l_iSocketClient;
     int l_iReturnedReadWriteValue;
     struct sockaddr_in l_structServAddr;
@@ -826,6 +835,7 @@ void* clientConnectionThread(void* p_structCommonShared)
 
     bzero((char *) &l_structServAddr, sizeof(l_structServAddr));
     bzero(l_cBufferTransmittedData, USER_COMMAND_LENGHT);
+    l_cCursor = NULL;
     l_bDuckServiceMessageAnswerWaiting = FALSE;
     l_dWhenWeHaveToSendAnswer= 0;
     l_structServAddr.sin_family = AF_INET;
@@ -937,7 +947,7 @@ void* clientConnectionThread(void* p_structCommonShared)
             {
                 snprintf(l_cBufferToSendData,
                                 USER_COMMAND_LENGHT,
-                                "cli_srv ack0004 srv_cli msg ##%d%s##%d Hi, i've just joined the game !",
+                                "cli_srv ack0004 srv_cli msg ##%d%s##%d Hi, i've just joined the game !\\0",
                                 p_structCommon->iCurrentUserColor + 20,
                                 p_structCommon->sUserName,
                                 20);
@@ -989,6 +999,12 @@ void* clientConnectionThread(void* p_structCommonShared)
             /* Messaging function, we display message we just received */
             else if(strstr(l_cBufferTransmittedData, "srv_cli msg") != NULL)
             {
+                l_cCursor = strstr(l_cBufferTransmittedData, "\\0");
+                if(l_cCursor != NULL)
+                {
+                    memset(l_cCursor, '\0', 2);
+                }
+
                 threadSafeLogBar(p_structCommon, ADD_LINE, strstr(l_cBufferTransmittedData, "srv_cli msg ") + strlen("srv_cli msg "));
                 threadSafeLogBar(p_structCommon, DISPLAY, "");
 
@@ -1041,7 +1057,7 @@ void* clientConnectionThread(void* p_structCommonShared)
         {
             snprintf(l_cBufferToSendData,
                             USER_COMMAND_LENGHT,
-                            "srv_cli msg ##%d%s##%d %s",
+                            "srv_cli msg ##%d%s##%d %s\\0",
                             p_structCommon->iCurrentUserColor + 20,
                             p_structCommon->sUserName,
                             20,
